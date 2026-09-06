@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 header('Content-Type: application/json');
 
@@ -28,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $msg = 'Dentist updated successfully!';
         } else {
             // Insert
-            $sql = "INSERT INTO dentists (full_name, specialization, prc_license, schedule, consultation_fee, is_available) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO dentists (clinic_id, full_name, specialization, prc_license, schedule, consultation_fee, is_available, clinic_id) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$full_name, $specialization, $prc_license, $schedule, $consultation_fee, $is_available]);
             $msg = 'Dentist added successfully!';

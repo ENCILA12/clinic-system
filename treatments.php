@@ -45,12 +45,14 @@ require_once 'includes/db.php';
                             <?php
 
                             try {
-                                $stmt = $pdo->query("
+                                $stmt = $pdo->prepare("
                                     SELECT t.*, p.full_name 
                                     FROM treatments t 
                                     JOIN patients p ON t.patient_id = p.patient_id 
+                                    WHERE t.clinic_id = ?
                                     ORDER BY t.created_at DESC
                                 ");
+                                $stmt->execute([$_SESSION['clinic_id']]);
                                 $treatments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                 if(count($treatments) > 0) {
@@ -110,7 +112,9 @@ require_once 'includes/db.php';
                                 <option value="">-- Select Patient --</option>
                                 <?php
 
-                                $patients = $pdo->query("SELECT patient_id, full_name FROM patients ORDER BY full_name ASC")->fetchAll();
+                                $stmtPat = $pdo->prepare("SELECT patient_id, full_name FROM patients WHERE clinic_id = ? ORDER BY full_name ASC");
+                                $stmtPat->execute([$_SESSION['clinic_id']]);
+                                $patients = $stmtPat->fetchAll();
                                 foreach($patients as $p) {
                                     echo "<option value='" . $p['patient_id'] . "'>" . htmlspecialchars($p['full_name']) . " (" . $p['patient_id'] . ")</option>";
                                 }
@@ -130,7 +134,8 @@ require_once 'includes/db.php';
                                     echo "<option value='" . htmlspecialchars($currentUsername) . "' selected>" . htmlspecialchars($currentUsername) . "</option>";
                                 } else {
                                     echo "<option value=''>-- Select Dentist --</option>";
-                                    $stmtDentists = $pdo->query("SELECT username FROM users WHERE role = 'Dentist' ORDER BY username ASC");
+                                    $stmtDentists = $pdo->prepare("SELECT username FROM users WHERE role = 'Dentist' AND clinic_id = ? ORDER BY username ASC");
+                                    $stmtDentists->execute([$_SESSION['clinic_id']]);
                                     $dentists = $stmtDentists->fetchAll(PDO::FETCH_ASSOC);
                                     foreach($dentists as $d) {
                                         echo "<option value='" . htmlspecialchars($d['username']) . "'>" . htmlspecialchars($d['username']) . "</option>";
@@ -189,7 +194,9 @@ require_once 'includes/db.php';
                                     <select id="materialSelect" class="form-control" style="flex:1;">
                                         <option value="">-- Select Material --</option>
                                         <?php
-                                        $invItems = $pdo->query("SELECT id, item_name, current_stock FROM inventory ORDER BY item_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+                                        $stmtInv = $pdo->prepare("SELECT id, item_name, current_stock FROM inventory WHERE clinic_id = ? ORDER BY item_name ASC");
+                                        $stmtInv->execute([$_SESSION['clinic_id']]);
+                                        $invItems = $stmtInv->fetchAll(PDO::FETCH_ASSOC);
                                         foreach($invItems as $inv) {
                                             $disabled = $inv['current_stock'] <= 0 ? 'disabled' : '';
                                             $stockText = $inv['current_stock'] > 0 ? " (Stock: {$inv['current_stock']})" : " (Out of Stock)";

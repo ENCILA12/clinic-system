@@ -1,17 +1,23 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang='en'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Dental Clinic - Patients</title>
+    <title>DentaFlow - Patients</title>
     <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap' rel='stylesheet'>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'>
     <link rel='stylesheet' href='css/style.css'>
 </head>
 <body>
     <div class='dashboard-container'>
-        <?php
- include 'includes/sidebar.php'; ?>
+        <?php include 'includes/sidebar.php'; ?>
         <div class='main-content'>
             <?php
  include 'includes/header.php'; ?>
@@ -21,7 +27,13 @@
                         <h1>Patients</h1>
                         <p>Manage patient records and medical history.</p>
                     </div>
-                    <button class="btn btn-primary" id="addPatientBtn"><i class="fa-solid fa-plus"></i> Add New Patient</button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <form method="GET" action="patients.php" style="display:flex; align-items:center;">
+                            <input type="text" name="search" placeholder="Search name or contact..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" class="form-control" style="border-radius: 8px 0 0 8px; border-right: none;">
+                            <button type="submit" class="btn btn-primary" style="border-radius: 0 8px 8px 0; padding: 10px 15px;"><i class="fa-solid fa-search"></i></button>
+                        </form>
+                        <button class="btn btn-primary" id="addPatientBtn" style="margin-left: 10px;"><i class="fa-solid fa-plus"></i> Add New Patient</button>
+                    </div>
                 </div>
                 
                 <!-- Table Container -->
@@ -39,10 +51,20 @@
                         </thead>
                         <tbody>
                             <?php
-
                             require_once 'includes/db.php';
                             try {
-                                $stmt = $pdo->query("SELECT * FROM patients ORDER BY created_at DESC");
+                                $clinic_id = $_SESSION['clinic_id'];
+                                $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+                                
+                                if (!empty($search)) {
+                                    $stmt = $pdo->prepare("SELECT * FROM patients WHERE clinic_id = ? AND (full_name LIKE ? OR contact_number LIKE ? OR email LIKE ?) ORDER BY created_at DESC");
+                                    $searchTerm = "%$search%";
+                                    $stmt->execute([$clinic_id, $searchTerm, $searchTerm, $searchTerm]);
+                                } else {
+                                    $stmt = $pdo->prepare("SELECT * FROM patients WHERE clinic_id = ? ORDER BY created_at DESC");
+                                    $stmt->execute([$clinic_id]);
+                                }
+                                
                                 $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 
                                 if(count($patients) > 0) {

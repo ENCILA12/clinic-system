@@ -12,31 +12,31 @@ $dentistName = $_SESSION['username']; // Using username as the identifier
 try {
     // 1. Total Revenue Today
     if ($isDentist) {
-        $stmtRevToday = $pdo->prepare("SELECT SUM(b.amount_paid) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE DATE(b.created_at) = ? AND t.dentist_name = ?");
-        $stmtRevToday->execute([$today, $dentistName]);
+        $stmtRevToday = $pdo->prepare("SELECT SUM(b.amount_paid) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE DATE(b.created_at) = ? AND t.dentist_name = ? AND b.clinic_id = ?");
+        $stmtRevToday->execute([$today, $dentistName, $_SESSION['clinic_id']]);
     } else {
-        $stmtRevToday = $pdo->prepare("SELECT SUM(amount_paid) AS total FROM billing WHERE DATE(created_at) = ?");
-        $stmtRevToday->execute([$today]);
+        $stmtRevToday = $pdo->prepare("SELECT SUM(amount_paid) AS total FROM billing WHERE DATE(created_at) = ? AND clinic_id = ?");
+        $stmtRevToday->execute([$today, $_SESSION['clinic_id']]);
     }
     $revToday = $stmtRevToday->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 
     // Total Revenue Month
     if ($isDentist) {
-        $stmtRevMonth = $pdo->prepare("SELECT SUM(b.amount_paid) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE DATE_FORMAT(b.created_at, '%Y-%m') = ? AND t.dentist_name = ?");
-        $stmtRevMonth->execute([$currentMonth, $dentistName]);
+        $stmtRevMonth = $pdo->prepare("SELECT SUM(b.amount_paid) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE DATE_FORMAT(b.created_at, '%Y-%m') = ? AND t.dentist_name = ? AND b.clinic_id = ?");
+        $stmtRevMonth->execute([$currentMonth, $dentistName, $_SESSION['clinic_id']]);
     } else {
-        $stmtRevMonth = $pdo->prepare("SELECT SUM(amount_paid) AS total FROM billing WHERE DATE_FORMAT(created_at, '%Y-%m') = ?");
-        $stmtRevMonth->execute([$currentMonth]);
+        $stmtRevMonth = $pdo->prepare("SELECT SUM(amount_paid) AS total FROM billing WHERE DATE_FORMAT(created_at, '%Y-%m') = ? AND clinic_id = ?");
+        $stmtRevMonth->execute([$currentMonth, $_SESSION['clinic_id']]);
     }
     $revMonth = $stmtRevMonth->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 
     // 2. Daily Patients (Appointments Today)
     if ($isDentist) {
-        $stmtAppt = $pdo->prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='Completed' THEN 1 ELSE 0 END) AS completed FROM appointments WHERE appointment_date = ? AND dentist_name = ?");
-        $stmtAppt->execute([$today, $dentistName]);
+        $stmtAppt = $pdo->prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='Completed' THEN 1 ELSE 0 END) AS completed FROM appointments WHERE appointment_date = ? AND dentist_name = ? AND clinic_id = ?");
+        $stmtAppt->execute([$today, $dentistName, $_SESSION['clinic_id']]);
     } else {
-        $stmtAppt = $pdo->prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='Completed' THEN 1 ELSE 0 END) AS completed FROM appointments WHERE appointment_date = ?");
-        $stmtAppt->execute([$today]);
+        $stmtAppt = $pdo->prepare("SELECT COUNT(*) AS total, SUM(CASE WHEN status='Completed' THEN 1 ELSE 0 END) AS completed FROM appointments WHERE appointment_date = ? AND clinic_id = ?");
+        $stmtAppt->execute([$today, $_SESSION['clinic_id']]);
     }
     $apptStats = $stmtAppt->fetch(PDO::FETCH_ASSOC);
     $totalAppts = $apptStats['total'] ?? 0;
@@ -44,37 +44,41 @@ try {
 
     // 3. Completed Procedures Today (from treatments)
     if ($isDentist) {
-        $stmtProc = $pdo->prepare("SELECT COUNT(*) AS total FROM treatments WHERE DATE(created_at) = ? AND dentist_name = ?");
-        $stmtProc->execute([$today, $dentistName]);
+        $stmtProc = $pdo->prepare("SELECT COUNT(*) AS total FROM treatments WHERE DATE(created_at) = ? AND dentist_name = ? AND clinic_id = ?");
+        $stmtProc->execute([$today, $dentistName, $_SESSION['clinic_id']]);
     } else {
-        $stmtProc = $pdo->prepare("SELECT COUNT(*) AS total FROM treatments WHERE DATE(created_at) = ?");
-        $stmtProc->execute([$today]);
+        $stmtProc = $pdo->prepare("SELECT COUNT(*) AS total FROM treatments WHERE DATE(created_at) = ? AND clinic_id = ?");
+        $stmtProc->execute([$today, $_SESSION['clinic_id']]);
     }
     $procToday = $stmtProc->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
 
     // 4. Total Outstanding Balances (Patient)
     if ($isDentist) {
-        $stmtBal = $pdo->prepare("SELECT SUM(b.balance) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE b.balance > 0 AND b.payment_status != 'For HMO Claim' AND t.dentist_name = ?");
-        $stmtBal->execute([$dentistName]);
+        $stmtBal = $pdo->prepare("SELECT SUM(b.balance) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE b.balance > 0 AND b.payment_status != 'For HMO Claim' AND t.dentist_name = ? AND b.clinic_id = ?");
+        $stmtBal->execute([$dentistName, $_SESSION['clinic_id']]);
         $outBalance = $stmtBal->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
         
-        $stmtHMO = $pdo->prepare("SELECT SUM(b.balance) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE b.payment_status = 'For HMO Claim' AND t.dentist_name = ?");
-        $stmtHMO->execute([$dentistName]);
+        $stmtHMO = $pdo->prepare("SELECT SUM(b.balance) AS total FROM billing b JOIN treatments t ON b.patient_id = t.patient_id WHERE b.payment_status = 'For HMO Claim' AND t.dentist_name = ? AND b.clinic_id = ?");
+        $stmtHMO->execute([$dentistName, $_SESSION['clinic_id']]);
         $hmoReceivables = $stmtHMO->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
     } else {
-        $stmtBal = $pdo->query("SELECT SUM(balance) AS total FROM billing WHERE balance > 0 AND payment_status != 'For HMO Claim'");
+        $stmtBal = $pdo->prepare("SELECT SUM(balance) AS total FROM billing WHERE balance > 0 AND payment_status != 'For HMO Claim' AND clinic_id = ?");
+        $stmtBal->execute([$_SESSION['clinic_id']]);
         $outBalance = $stmtBal->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
         
-        $stmtHMO = $pdo->query("SELECT SUM(balance) AS total FROM billing WHERE payment_status = 'For HMO Claim'");
+        $stmtHMO = $pdo->prepare("SELECT SUM(balance) AS total FROM billing WHERE payment_status = 'For HMO Claim' AND clinic_id = ?");
+        $stmtHMO->execute([$_SESSION['clinic_id']]);
         $hmoReceivables = $stmtHMO->fetch(PDO::FETCH_ASSOC)['total'] ?? 0;
     }
 
     // 5. Most Performed Services (All time, top 5)
-    $stmtTopServices = $pdo->query("SELECT service_name, SUM(quantity) as total_qty FROM billing_items GROUP BY service_name ORDER BY total_qty DESC LIMIT 5");
+    $stmtTopServices = $pdo->prepare("SELECT service_name, SUM(quantity) as total_qty FROM billing_items bi JOIN billing b ON bi.invoice_id = b.invoice_id WHERE b.clinic_id = ? GROUP BY service_name ORDER BY total_qty DESC LIMIT 5");
+    $stmtTopServices->execute([$_SESSION['clinic_id']]);
     $topServices = $stmtTopServices->fetchAll(PDO::FETCH_ASSOC);
 
     // 6. Inventory Alerts (Low Stock or Expired/Near Expiry)
-    $stmtInv = $pdo->query("SELECT * FROM inventory WHERE current_stock <= minimum_stock OR (expiration_date IS NOT NULL AND expiration_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)) ORDER BY expiration_date ASC LIMIT 5");
+    $stmtInv = $pdo->prepare("SELECT * FROM inventory WHERE clinic_id = ? AND (current_stock <= minimum_stock OR (expiration_date IS NOT NULL AND expiration_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY))) ORDER BY expiration_date ASC LIMIT 5");
+    $stmtInv->execute([$_SESSION['clinic_id']]);
     $inventoryAlerts = $stmtInv->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {

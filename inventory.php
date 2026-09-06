@@ -60,21 +60,23 @@ require_once 'includes/db.php';
 
                                 // Count total for pagination
                                 if ($search !== '') {
-                                    $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM inventory WHERE item_name LIKE ?");
-                                    $stmtCount->execute(["%$search%"]);
+                                    $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM inventory WHERE item_name LIKE ? AND clinic_id = ?");
+                                    $stmtCount->execute(["%$search%", $_SESSION['clinic_id']]);
                                 } else {
-                                    $stmtCount = $pdo->query("SELECT COUNT(*) FROM inventory");
+                                    $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM inventory WHERE clinic_id = ?");
+                                    $stmtCount->execute([$_SESSION['clinic_id']]);
                                 }
                                 $totalRows = $stmtCount->fetchColumn();
                                 $totalPages = ceil($totalRows / $limit);
 
                                 // Fetch data
                                 if ($search !== '') {
-                                    $stmt = $pdo->prepare("SELECT * FROM inventory WHERE item_name LIKE :search ORDER BY item_name ASC LIMIT :limit OFFSET :offset");
+                                    $stmt = $pdo->prepare("SELECT * FROM inventory WHERE item_name LIKE :search AND clinic_id = :clinic_id ORDER BY item_name ASC LIMIT :limit OFFSET :offset");
                                     $stmt->bindValue(':search', "%$search%", PDO::PARAM_STR);
                                 } else {
-                                    $stmt = $pdo->prepare("SELECT * FROM inventory ORDER BY item_name ASC LIMIT :limit OFFSET :offset");
+                                    $stmt = $pdo->prepare("SELECT * FROM inventory WHERE clinic_id = :clinic_id ORDER BY item_name ASC LIMIT :limit OFFSET :offset");
                                 }
+                                $stmt->bindValue(':clinic_id', $_SESSION['clinic_id'], PDO::PARAM_INT);
                                 $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
                                 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
                                 $stmt->execute();

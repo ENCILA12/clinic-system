@@ -5,11 +5,24 @@ $username = $_SESSION['username'] ?? 'User';
 ?>
 <aside class="sidebar">
     <div class="sidebar-brand">
-        <i class="fa-solid fa-tooth"></i> SmileCare Clinic
+        <?php if (!empty($_SESSION['clinic_logo'])): ?>
+            <img src="<?php echo htmlspecialchars($_SESSION['clinic_logo']); ?>" alt="Logo" style="height: 32px; width: 32px; object-fit: cover; border-radius: 8px; margin-right: 8px;">
+        <?php else: ?>
+            <i class="fa-solid fa-tooth"></i> 
+        <?php endif; ?>
+        <?php echo htmlspecialchars($_SESSION['clinic_name'] ?? 'DentaFlow'); ?>
     </div>
     
     <div style="padding: 10px 20px; color: #94a3b8; font-size: 13px; border-bottom: 1px solid #334155; margin-bottom: 10px;">
-        Logged in as: <br><strong style="color:white;"><?php echo htmlspecialchars($username); ?></strong> (<?php echo $role; ?>)
+        Logged in as:<br>
+        <strong style="color: white;"><?php echo htmlspecialchars($_SESSION['username']); ?></strong> 
+        (<?php echo htmlspecialchars($_SESSION['role']); ?>)
+        
+        <?php if(!empty($_SESSION['subscription_expiry'])): ?>
+            <div style="margin-top: 8px; font-size: 11px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; display: inline-block;">
+                <i class="fa-solid fa-clock"></i> Expiry: <?php echo date('M d, Y', strtotime($_SESSION['subscription_expiry'])); ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <ul class="sidebar-nav">

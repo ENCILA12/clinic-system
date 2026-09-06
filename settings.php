@@ -9,8 +9,14 @@ if ($_SESSION['role'] !== 'Admin') {
 }
 
 try {
-    $stmt = $pdo->query("SELECT id, username, full_name, role, created_at FROM users ORDER BY created_at DESC");
+    $stmt = $pdo->prepare("SELECT id, username, full_name, role, created_at FROM users WHERE clinic_id = ? ORDER BY created_at DESC");
+    $stmt->execute([$_SESSION['clinic_id']]);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch clinic info
+    $stmtC = $pdo->prepare("SELECT name, logo_url FROM clinics WHERE id = ?");
+    $stmtC->execute([$_SESSION['clinic_id']]);
+    $clinic = $stmtC->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Error fetching users: " . $e->getMessage());
 }
@@ -37,6 +43,27 @@ try {
                 </div>
                 
                 <div style="display:flex; gap:24px;">
+                    <!-- Clinic Profile Section -->
+                    <div style="flex: 1; background:white; border-radius:12px; border:1px solid var(--border-color); padding:24px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); align-self:flex-start;">
+                        <h3 style="margin-top:0; border-bottom:1px solid var(--border-color); padding-bottom:12px;"><i class="fa-solid fa-hospital"></i> Clinic Profile</h3>
+                        <form id="clinicProfileForm" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label>Clinic Name</label>
+                                <input type="text" class="form-control" name="clinic_name" value="<?php echo htmlspecialchars($clinic['name'] ?? ''); ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Clinic Logo (Image only)</label>
+                                <?php if (!empty($clinic['logo_url'])): ?>
+                                    <div style="margin-bottom: 10px;">
+                                        <img src="<?php echo htmlspecialchars($clinic['logo_url']); ?>" alt="Clinic Logo" style="max-height: 80px; max-width: 100%; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                    </div>
+                                <?php endif; ?>
+                                <input type="file" class="form-control" name="clinic_logo" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width:100%;">Save Profile</button>
+                        </form>
+                    </div>
+
                     <!-- User List -->
                     <div class="data-table-container" style="flex: 2;">
                         <div style="padding:16px; border-bottom:1px solid var(--border-color); font-weight:600; font-size:16px;">
@@ -135,6 +162,33 @@ try {
         .catch(err => alert('An error occurred.'))
         .finally(() => {
             btn.innerText = 'Create Account';
+            btn.disabled = false;
+        });
+    });
+
+    document.getElementById('clinicProfileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = this.querySelector('button[type="submit"]');
+        btn.innerText = 'Saving...';
+        btn.disabled = true;
+
+        const formData = new FormData(this);
+        fetch('api/save_clinic_profile.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => alert('An error occurred.'))
+        .finally(() => {
+            btn.innerText = 'Save Profile';
             btn.disabled = false;
         });
     });

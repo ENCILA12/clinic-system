@@ -19,11 +19,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($user && password_verify($password, $user['password'])) {
             // Success
+            // Fetch clinic name
+            $stmtC = $pdo->prepare("SELECT name, subscription_expiry, logo_url FROM clinics WHERE id = ?");
+            $stmtC->execute([$user['clinic_id']]);
+            $clinicData = $stmtC->fetch(PDO::FETCH_ASSOC);
+            
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
+            $_SESSION['clinic_id'] = $user['clinic_id'];
+            $_SESSION['clinic_name'] = $clinicData ? $clinicData['name'] : 'DentaFlow';
+            $_SESSION['clinic_logo'] = $clinicData ? $clinicData['logo_url'] : null;
+            $_SESSION['subscription_expiry'] = $clinicData ? $clinicData['subscription_expiry'] : null;
             
-            echo json_encode(['success' => true]);
+            $redirectUrl = ($user['role'] === 'Superadmin') ? 'superadmin.php' : 'index.php';
+            
+            echo json_encode(['success' => true, 'redirect' => $redirectUrl]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid username or password.']);
         }

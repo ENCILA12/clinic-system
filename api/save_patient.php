@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 
 header('Content-Type: application/json');
@@ -10,14 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nextId = $lastPatient ? $lastPatient['id'] + 1 : 1;
     $patient_id = "PT-" . date('ym') . "-" . str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
-    $sql = "INSERT INTO patients (
+    $sql = "INSERT INTO patients (clinic_id, 
                 patient_id, full_name, birthday, age, gender, contact_number, email, address, 
                 emergency_contact, occupation, blood_type, smoking_status, allergies, 
-                medical_conditions, current_medications, pregnancy
+                medical_conditions, current_medications, pregnancy, clinic_id
             ) VALUES (
                 :patient_id, :full_name, :birthday, :age, :gender, :contact_number, :email, :address,
                 :emergency_contact, :occupation, :blood_type, :smoking_status, :allergies,
-                :medical_conditions, :current_medications, :pregnancy
+                :medical_conditions, :current_medications, :pregnancy, :clinic_id, clinic_id
             )";
             
     $stmt = $pdo->prepare($sql);
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':allergies' => $_POST['allergies'] ?? '',
             ':medical_conditions' => $_POST['medical_conditions'] ?? '',
             ':current_medications' => $_POST['current_medications'] ?? '',
-            ':pregnancy' => $_POST['pregnancy'] ?? ''
+            ':pregnancy, :clinic_id, clinic_id' => $_POST['pregnancy, clinic_id'] ?? ''
         ]);
         
         echo json_encode(['success' => true, 'message' => 'Patient saved successfully!']);

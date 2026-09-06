@@ -45,12 +45,14 @@ require_once 'includes/db.php';
                             <?php
 
                             try {
-                                $stmt = $pdo->query("
+                                $stmt = $pdo->prepare("
                                     SELECT b.*, p.full_name 
                                     FROM billing b 
                                     JOIN patients p ON b.patient_id = p.patient_id 
+                                    WHERE b.clinic_id = ?
                                     ORDER BY b.created_at DESC
                                 ");
+                                $stmt->execute([$_SESSION['clinic_id']]);
                                 $bills = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                 if(count($bills) > 0) {
@@ -103,7 +105,9 @@ require_once 'includes/db.php';
                             <option value="">-- Select Patient --</option>
                             <?php
 
-                            $patients = $pdo->query("SELECT patient_id, full_name FROM patients ORDER BY full_name ASC")->fetchAll();
+                            $stmtPat = $pdo->prepare("SELECT patient_id, full_name FROM patients WHERE clinic_id = ? ORDER BY full_name ASC");
+                            $stmtPat->execute([$_SESSION['clinic_id']]);
+                            $patients = $stmtPat->fetchAll();
                             foreach($patients as $p) {
                                 echo "<option value='" . $p['patient_id'] . "'>" . htmlspecialchars($p['full_name']) . " (" . $p['patient_id'] . ")</option>";
                             }

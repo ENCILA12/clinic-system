@@ -45,12 +45,14 @@ require_once 'includes/db.php';
                             <?php
 
                             try {
-                                $stmt = $pdo->query("
+                                $stmt = $pdo->prepare("
                                     SELECT a.*, p.full_name 
                                     FROM appointments a 
                                     JOIN patients p ON a.patient_id = p.patient_id 
+                                    WHERE a.clinic_id = ?
                                     ORDER BY a.appointment_date ASC, a.appointment_time ASC
                                 ");
+                                $stmt->execute([$_SESSION['clinic_id']]);
                                 $appointments = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 
                                 $statuses = ['Pending', 'Confirmed', 'Arrived', 'Waiting', 'In Treatment', 'Completed', 'Cancelled', 'No Show'];
@@ -114,7 +116,9 @@ require_once 'includes/db.php';
                                 <option value="">-- Select Patient --</option>
                                 <?php
 
-                                $patients = $pdo->query("SELECT patient_id, full_name FROM patients ORDER BY full_name ASC")->fetchAll();
+                                $stmtPat = $pdo->prepare("SELECT patient_id, full_name FROM patients WHERE clinic_id = ? ORDER BY full_name ASC");
+                                $stmtPat->execute([$_SESSION['clinic_id']]);
+                                $patients = $stmtPat->fetchAll();
                                 foreach($patients as $p) {
                                     echo "<option value='" . $p['patient_id'] . "'>" . htmlspecialchars($p['full_name']) . " (" . $p['patient_id'] . ")</option>";
                                 }
@@ -134,8 +138,14 @@ require_once 'includes/db.php';
                         <div class="form-group full-width">
                             <label>Dentist on Duty</label>
                             <select class="form-control" name="dentist_name" required>
-                                <option value="Dr. John Smith">Dr. John Smith (General Dentistry)</option>
-                                <option value="Dr. Sarah Lee">Dr. Sarah Lee (Orthodontist)</option>
+                                <?php
+                                $stmtDent = $pdo->prepare("SELECT username FROM users WHERE role = 'Dentist' AND clinic_id = ? ORDER BY username ASC");
+                                $stmtDent->execute([$_SESSION['clinic_id']]);
+                                $dents = $stmtDent->fetchAll(PDO::FETCH_ASSOC);
+                                foreach($dents as $d) {
+                                    echo "<option value='" . htmlspecialchars($d['username']) . "'>" . htmlspecialchars($d['username']) . "</option>";
+                                }
+                                ?>
                             </select>
                         </div>
 

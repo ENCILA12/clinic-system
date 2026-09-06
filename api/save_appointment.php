@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 
 header('Content-Type: application/json');
@@ -9,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nextId = $lastApt ? $lastApt['id'] + 1 : 1;
     $appointment_id = "APT-" . date('ym') . "-" . str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
-    $sql = "INSERT INTO appointments (
+    $sql = "INSERT INTO appointments (clinic_id, 
                 appointment_id, patient_id, dentist_name, appointment_date, appointment_time, 
                 procedure_name, estimated_duration, notes
             ) VALUES (
                 :appointment_id, :patient_id, :dentist_name, :appointment_date, :appointment_time,
-                :procedure_name, :estimated_duration, :notes
+                :procedure_name, :estimated_duration, :notes, :clinic_id
             )";
             
     $stmt = $pdo->prepare($sql);
@@ -28,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':appointment_time' => $_POST['appointment_time'] ?? '',
             ':procedure_name' => $_POST['procedure_name'] ?? '',
             ':estimated_duration' => $_POST['estimated_duration'] ?? '',
-            ':notes' => $_POST['notes'] ?? ''
+            ':notes' => $_POST['notes'] ?? '',
+            ':clinic_id' => $_SESSION['clinic_id']
         ]);
         
         echo json_encode(['success' => true, 'message' => 'Appointment booked successfully!']);

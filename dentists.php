@@ -45,7 +45,8 @@ require_once 'includes/db.php';
                             <?php
 
                             try {
-                                $stmt = $pdo->query("SELECT * FROM dentists ORDER BY full_name ASC");
+                                $stmt = $pdo->prepare("SELECT * FROM dentists WHERE clinic_id = ? ORDER BY full_name ASC");
+                                $stmt->execute([$_SESSION['clinic_id']]);
                                 $dentists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                 if(count($dentists) > 0) {
@@ -114,7 +115,8 @@ require_once 'includes/db.php';
                         <select class="form-control" name="full_name" id="dentistName" required>
                             <option value="">-- Select Dentist --</option>
                             <?php
-                            $stmt = $pdo->query("SELECT full_name FROM users WHERE role = 'Dentist' ORDER BY full_name ASC");
+                            $stmt = $pdo->prepare("SELECT full_name FROM users WHERE role = 'Dentist' AND clinic_id = ? ORDER BY full_name ASC");
+                            $stmt->execute([$_SESSION['clinic_id']]);
                             $usersList = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             foreach($usersList as $u) {
                                 if(!empty($u['full_name'])) {

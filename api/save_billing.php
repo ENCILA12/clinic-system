@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 header('Content-Type: application/json');
 
@@ -43,15 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Insert into billing
         $sql = "INSERT INTO billing (
-                    invoice_id, patient_id, subtotal, discount, total_amount, 
+                    clinic_id, invoice_id, patient_id, subtotal, discount, total_amount, 
                     amount_paid, balance, payment_method, payment_status,
                     hmo_provider, hmo_approval_code
                 ) VALUES (
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            $invoice_id, $patient_id, $subtotal, $discount, $total_amount, 
+            $_SESSION['clinic_id'], $invoice_id, $patient_id, $subtotal, $discount, $total_amount, 
             $amount_paid, $balance, $payment_method, $payment_status,
             $hmo_provider, $hmo_approval_code
         ]);

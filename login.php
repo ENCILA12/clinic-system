@@ -69,8 +69,8 @@ if(isset($_SESSION['user_id'])) {
 <body>
     <div class="login-card">
         <i class="fa-solid fa-tooth"></i>
-        <h2>SmileCare Clinic</h2>
-        <p>Sign in to your account</p>
+        <h2>DentaFlow</h2>
+        <p>Sign in to your clinic</p>
         
         <div class="error-msg" id="errorMsg"></div>
 
@@ -85,11 +85,6 @@ if(isset($_SESSION['user_id'])) {
             </div>
             <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Sign In</button>
         </form>
-        
-        <div style="margin-top: 24px; font-size: 12px; color: gray;">
-            Try: admin / password123<br>
-            Roles: Admin, Receptionist, Dentist, Assistant
-        </div>
     </div>
 
     <script>
@@ -109,7 +104,7 @@ if(isset($_SESSION['user_id'])) {
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                window.location.href = 'index.php';
+                window.location.href = data.redirect || 'index.php';
             } else {
                 errorMsg.innerText = data.message;
                 errorMsg.style.display = 'block';

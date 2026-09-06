@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 header('Content-Type: application/json');
 
@@ -36,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // 2. Insert Treatment Record
-        $sql = "INSERT INTO treatments (
+        $sql = "INSERT INTO treatments (clinic_id, 
                     treatment_id, patient_id, dentist_name, chief_complaint, 
-                    diagnosis, treatment_plan, procedure_done, follow_up_date, notes, materials_used
+                    diagnosis, treatment_plan, procedure_done, follow_up_date, notes, materials_used, clinic_id
                 ) VALUES (
                     :treatment_id, :patient_id, :dentist_name, :chief_complaint,
-                    :diagnosis, :treatment_plan, :procedure_done, :follow_up_date, :notes, :materials_used
+                    :diagnosis, :treatment_plan, :procedure_done, :follow_up_date, :notes, :materials_used, :clinic_id, clinic_id
                 )";
                 
         $stmt = $pdo->prepare($sql);
@@ -55,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':procedure_done' => $_POST['procedure_done'] ?? '',
             ':follow_up_date' => $follow_up,
             ':notes' => $_POST['notes'] ?? '',
-            ':materials_used' => $materialsText ?: null
+            ':materials_used, :clinic_id, clinic_id' => $materialsText ?: null
         ]);
         
         $pdo->commit();

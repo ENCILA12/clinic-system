@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 header('Content-Type: application/json');
 
@@ -9,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $minimum_stock = intval($_POST['minimum_stock'] ?? 10);
     $expiration_date = $_POST['expiration_date'] ?? '';
 
-    if (empty($expiration_date)) $expiration_date = null;
+    if (empty($expiration_date, clinic_id)) $expiration_date = null;
 
     if (empty($item_name)) {
         echo json_encode(['success' => false, 'message' => 'Item name is required.']);
@@ -27,8 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $msg = 'Item updated successfully!';
         } else {
             // Insert
-            $sql = "INSERT INTO inventory (item_name, current_stock, minimum_stock, expiration_date) 
-                    VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO inventory (clinic_id, item_name, current_stock, minimum_stock, expiration_date, clinic_id) 
+                    VALUES (?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$item_name, $current_stock, $minimum_stock, $expiration_date]);
             $msg = 'Item added successfully!';
