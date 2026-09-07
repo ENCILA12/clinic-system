@@ -81,19 +81,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const qty = parseInt(materialQty.value) || 1;
 
             const tr = document.createElement('tr');
-            tr.innerHTML = 
+            tr.innerHTML = `
                 <td>
-                    <input type="hidden" name="material_id[]" value=" + invId + ">
-                    <input type="hidden" name="material_name[]" value=" + invName + ">
-                     + invName + 
+                    <input type="hidden" name="material_id[]" value="${invId}">
+                    <input type="hidden" name="material_name[]" value="${invName}">
+                    ${invName}
                 </td>
                 <td>
-                    <input type="number" name="material_qty[]" class="form-control" value=" + qty + " min="1" style="padding:4px;" readonly>
+                    <input type="number" name="material_qty[]" class="form-control" value="${qty}" min="1" style="padding:4px;" readonly>
                 </td>
                 <td style="text-align:center;">
                     <button type="button" class="remove-material-btn" style="color:var(--danger); background:none; border:none; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                 </td>
-            ;
+            `;
 
             materialsTableBody.appendChild(tr);
             materialSelect.value = '';

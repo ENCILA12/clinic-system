@@ -13,12 +13,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ?");
-        $stmt->execute([$username]);
+        $clinic_slug = $_POST['clinic_slug'] ?? null;
+        
+        if ($clinic_slug) {
+            $stmt = $pdo->prepare("SELECT u.* FROM users u LEFT JOIN clinics c ON u.clinic_id = c.id WHERE u.username = ? AND (c.slug = ? OR u.role = 'Superadmin')");
+            $stmt->execute([$username, $clinic_slug]);
+        } else {
+            // Root login (Superadmin only)
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE username = ? AND role = 'Superadmin'");
+            $stmt->execute([$username]);
+        }
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
-            $clinic_slug = $_POST['clinic_slug'] ?? null;
             
             // If they are logging in via a slug, verify they belong to that clinic (unless they are superadmin)
             if ($clinic_slug && $user['role'] !== 'Superadmin') {

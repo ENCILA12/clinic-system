@@ -39,6 +39,7 @@ require_once 'includes/db.php';
                                 <th>Balance</th>
                                 <th>Method</th>
                                 <th>Status</th>
+                                <th style="text-align:center;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,6 +75,15 @@ require_once 'includes/db.php';
                                         
                                         $statusClass = 'status-' . strtolower(str_replace(' ', '-', $b['payment_status']));
                                         echo "<td><span class='badge-tag $statusClass'>" . htmlspecialchars($b['payment_status']) . "</span></td>";
+                                        
+                                        echo "<td style='text-align:center;'>";
+                                        if ($b['balance'] > 0) {
+                                            echo "<button class='btn btn-outline' style='padding:4px 8px; font-size:12px;' onclick='payBalance(\"" . htmlspecialchars($b['invoice_id']) . "\", " . floatval($b['balance']) . ")'>Pay Balance</button>";
+                                        } else {
+                                            echo "<span style='color:var(--text-muted); font-size:12px;'><i class='fa-solid fa-check'></i> Cleared</span>";
+                                        }
+                                        echo "</td>";
+                                        
                                         echo "</tr>";
                                     }
                                 } else {
