@@ -38,21 +38,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
+            // Determine the active clinic ID
+            $active_clinic_id = $user['clinic_id'];
+
+            // If a Superadmin logs in via a clinic's slug, they adopt that clinic's context
+            if ($clinic_slug && $user['role'] === 'Superadmin') {
+                $stmtSlug = $pdo->prepare("SELECT id FROM clinics WHERE slug = ?");
+                $stmtSlug->execute([$clinic_slug]);
+                $clinicFromSlug = $stmtSlug->fetch(PDO::FETCH_ASSOC);
+                if ($clinicFromSlug) {
+                    $active_clinic_id = $clinicFromSlug['id'];
+                }
+            }
+
             // Success
             // Fetch clinic name
             $stmtC = $pdo->prepare("SELECT name, subscription_expiry, logo_url FROM clinics WHERE id = ?");
-            $stmtC->execute([$user['clinic_id']]);
+            $stmtC->execute([$active_clinic_id]);
             $clinicData = $stmtC->fetch(PDO::FETCH_ASSOC);
             
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role'] = $user['role'];
-            $_SESSION['clinic_id'] = $user['clinic_id'];
+            $_SESSION['clinic_id'] = $active_clinic_id;
             $_SESSION['clinic_name'] = $clinicData ? $clinicData['name'] : 'DentaFlow';
             $_SESSION['clinic_logo'] = $clinicData ? $clinicData['logo_url'] : null;
             $_SESSION['subscription_expiry'] = $clinicData ? $clinicData['subscription_expiry'] : null;
             
-            $redirectUrl = ($user['role'] === 'Superadmin') ? 'superadmin.php' : 'index.php';
+            $redirectUrl = ($user['role'] === 'Superadmin' && !$clinic_slug) ? 'superadmin.php' : 'index.php';
             
             echo json_encode(['success' => true, 'redirect' => $redirectUrl]);
         } else {
