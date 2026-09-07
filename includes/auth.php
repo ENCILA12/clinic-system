@@ -18,7 +18,9 @@ if (isset($_SESSION['clinic_slug']) && $_SESSION['clinic_slug'] !== '' && $_SESS
     $expected_prefix = $base_url . '/' . $_SESSION['clinic_slug'] . '/';
     
     // If the URL doesn't contain the expected prefix and we are not logging out or accessing superadmin
-    if (strpos($_SERVER['REQUEST_URI'], $expected_prefix) !== 0 && $currentPage !== 'logout.php' && $currentPage !== 'login.php' && $currentPage !== 'superadmin.php') {
+    $isApiRequest = (strpos($_SERVER['REQUEST_URI'], '/api/') !== false || strpos($_SERVER['SCRIPT_NAME'], '/api/') !== false);
+    
+    if (!$isApiRequest && strpos($_SERVER['REQUEST_URI'], $expected_prefix) !== 0 && $currentPage !== 'logout.php' && $currentPage !== 'login.php' && $currentPage !== 'superadmin.php') {
         // Force redirect to their correct URL
         header("Location: " . $expected_prefix . $currentPage);
         exit;
