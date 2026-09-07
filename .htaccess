@@ -1,4 +1,13 @@
+Options +FollowSymLinks
 RewriteEngine On
+RewriteBase /
+
+# 1. Catch the login page specifically to pass the clinic slug
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([a-zA-Z0-9-]+)/login\.php$ login.php?clinic_slug=$1 [L,QSA]
+
+# 2. Catch ALL OTHER files (index.php, css, api, etc.) accessed with the slug prefix
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^[a-zA-Z0-9-]+/(.*)$ $1 [L,QSA]
