@@ -235,8 +235,7 @@ require_once 'includes/db.php';
             </form>
         </div>
     </div>
-    
-    <script src="js/treatments.js"></script>
+    <script src="js/treatments.js?v=3"></script>
 </body>
 </html>
 
