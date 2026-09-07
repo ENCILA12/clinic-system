@@ -90,3 +90,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+window.deleteAppointment = function(id) {
+    if (confirm("Are you sure you want to delete this appointment?")) {
+        const formData = new FormData();
+        formData.append('id', id);
+        
+        fetch('api/delete_appointment.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(err => alert('An error occurred.'));
+    }
+};

@@ -1,10 +1,12 @@
 <?php
 session_start();
+require_once '../includes/auth.php';
 require_once '../includes/db.php';
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $stmt = $pdo->query("SELECT id FROM treatments ORDER BY id DESC LIMIT 1");
+    $stmt = $pdo->prepare("SELECT id FROM treatments WHERE clinic_id = ? ORDER BY id DESC LIMIT 1");
+    $stmt->execute([$_SESSION['clinic_id']]);
     $lastTx = $stmt->fetch();
     $nextId = $lastTx ? $lastTx['id'] + 1 : 1;
     $treatment_id = "TX-" . date('ym') . "-" . str_pad($nextId, 3, '0', STR_PAD_LEFT);
@@ -19,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $materialsText = '';
         if (isset($_POST['material_id']) && is_array($_POST['material_id'])) {
             $usedList = [];
-            $stmtUpdateInv = $pdo->prepare("UPDATE inventory SET current_stock = current_stock - :qty WHERE id = :id AND current_stock >= :qty");
+            $stmtUpdateInv = $pdo->prepare("UPDATE inventory SET current_stock = current_stock - :qty WHERE id = :id AND clinic_id = :clinic_id AND current_stock >= :qty");
             
             for ($i = 0; $i < count($_POST['material_id']); $i++) {
                 $m_id = $_POST['material_id'][$i];
@@ -27,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $m_name = $_POST['material_name'][$i];
                 
                 if ($m_qty > 0) {
-                    $stmtUpdateInv->execute([':qty' => $m_qty, ':id' => $m_id]);
+                    $stmtUpdateInv->execute([':qty' => $m_qty, ':id' => $m_id, ':clinic_id' => $_SESSION['clinic_id']]);
                     $usedList[] = "$m_name (x$m_qty)";
                 }
             }

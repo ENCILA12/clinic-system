@@ -81,7 +81,7 @@ require_once 'includes/db.php';
                                         echo "</td>";
                                         
                                         echo "<td class='action-links'>
-                                                <a href='#'><i class='fa-solid fa-pen'></i> Edit</a>
+                                                <button class='btn btn-outline' style='color:var(--danger); border-color:var(--danger); padding:4px 8px; font-size:12px;' onclick='deleteAppointment(" . $apt['id'] . ")'><i class='fa-solid fa-trash'></i></button>
                                               </td>";
                                         echo "</tr>";
                                     }
@@ -192,7 +192,7 @@ require_once 'includes/db.php';
         </div>
     </div>
     
-    <script src="js/appointments.js"></script>
+    <script src="js/appointments.js?v=2"></script>
 </body>
 </html>
 

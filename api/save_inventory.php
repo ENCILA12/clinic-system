@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once '../includes/auth.php';
 require_once '../includes/db.php';
 header('Content-Type: application/json');
 
@@ -31,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "INSERT INTO inventory (clinic_id, item_name, current_stock, minimum_stock, expiration_date) 
                     VALUES (?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$_SESSION['clinic_id'] ?? 1, $item_name, $current_stock, $minimum_stock, $expiration_date]);
+            $stmt->execute([$_SESSION['clinic_id'], $item_name, $current_stock, $minimum_stock, $expiration_date]);
             $msg = 'Item added successfully!';
         }
 

@@ -1,6 +1,7 @@
 <?php
+session_start();
+require_once '../includes/auth.php';
 require_once '../includes/db.php';
-header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $patient_id = $_POST['patient_id'] ?? '';
@@ -30,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO attachments (patient_id, file_type, file_name, file_path) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$patient_id, $file_type, $originalName, $dbPath]);
+            $stmt = $pdo->prepare("INSERT INTO attachments (patient_id, clinic_id, file_type, file_name, file_path) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$patient_id, $_SESSION['clinic_id'], $file_type, $originalName, $dbPath]);
             echo json_encode(['success' => true, 'message' => 'File uploaded successfully!']);
         } catch(PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);

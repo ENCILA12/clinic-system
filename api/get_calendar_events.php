@@ -14,12 +14,14 @@ try {
         SELECT a.*, p.full_name 
         FROM appointments a 
         JOIN patients p ON a.patient_id = p.patient_id
+        WHERE a.clinic_id = ?
     ";
     
+    $params = [$_SESSION['clinic_id']];
+    
     // Filter by dentist if it's a dentist logged in
-    $params = [];
     if ($isDentist) {
-        $sql .= " WHERE a.dentist_name = ?";
+        $sql .= " AND a.dentist_name = ?";
         $params[] = $dentistName;
     }
 
