@@ -225,9 +225,14 @@ $clinics = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <td style="padding: 12px;">
                                 <div style="font-weight: 600; font-size: 15px; color: #0f172a;"><?php echo htmlspecialchars($c['name']); ?></div>
                                 <?php if (!empty($c['slug'])): ?>
+                                <?php 
+                                    $base_url = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+                                    if ($base_url === '/') $base_url = '';
+                                    $login_link = 'http://' . $_SERVER['HTTP_HOST'] . $base_url . '/' . $c['slug'] . '/login.php';
+                                ?>
                                 <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
-                                    <input type="text" readonly value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/CLINIC system/' . $c['slug'] . '/login.php'; ?>" style="font-size: 11px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #64748b; width: 220px; cursor: text;" onclick="this.select();">
-                                    <a href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/CLINIC system/' . $c['slug'] . '/login.php'; ?>" target="_blank" style="color: #3b82f6; font-size: 12px; text-decoration: none;" title="Open in new tab"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                    <input type="text" readonly value="<?php echo htmlspecialchars($login_link); ?>" style="font-size: 11px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #64748b; width: 220px; cursor: text;" onclick="this.select();">
+                                    <a href="<?php echo htmlspecialchars($login_link); ?>" target="_blank" style="color: #3b82f6; font-size: 12px; text-decoration: none;" title="Open in new tab"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                                 </div>
                                 <?php else: ?>
                                 <span style="font-size: 11px; color: #ef4444;">No slug generated</span>
