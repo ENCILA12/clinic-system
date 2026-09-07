@@ -24,7 +24,7 @@ try {
     }
 
     // Fetch clinic details for the session
-    $stmtC = $pdo->prepare("SELECT name, logo_url FROM clinics WHERE id = ?");
+    $stmtC = $pdo->prepare("SELECT name, slug, logo_url FROM clinics WHERE id = ?");
     $stmtC->execute([$clinic_id]);
     $clinic = $stmtC->fetch(PDO::FETCH_ASSOC);
 
@@ -34,12 +34,14 @@ try {
     $_SESSION['role'] = $admin['role'];
     $_SESSION['clinic_id'] = $admin['clinic_id'];
     $_SESSION['clinic_name'] = $clinic ? $clinic['name'] : 'Unknown Clinic';
+    $_SESSION['clinic_slug'] = $clinic ? $clinic['slug'] : '';
     $_SESSION['clinic_logo'] = $clinic ? $clinic['logo_url'] : null;
     
     // Set a flag to remind them they are in override mode
     $_SESSION['superadmin_override'] = true;
 
-    header("Location: ../index.php");
+    $redirectUrl = empty($clinic['slug']) ? '../index.php' : '../' . $clinic['slug'] . '/index.php';
+    header("Location: " . $redirectUrl);
     exit;
 
 } catch (PDOException $e) {

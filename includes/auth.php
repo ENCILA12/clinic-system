@@ -9,6 +9,22 @@ if (!isset($_SESSION['user_id'])) {
 $userRole = $_SESSION['role'] ?? 'Unknown';
 $currentPage = basename($_SERVER['PHP_SELF']);
 
+// Enforce slug routing
+if (isset($_SESSION['clinic_slug']) && $_SESSION['clinic_slug'] !== '' && $_SESSION['role'] !== 'Superadmin') {
+    $base_url = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    if ($base_url === '/') $base_url = '';
+    
+    // The expected path prefix
+    $expected_prefix = $base_url . '/' . $_SESSION['clinic_slug'] . '/';
+    
+    // If the URL doesn't contain the expected prefix and we are not logging out or accessing superadmin
+    if (strpos($_SERVER['REQUEST_URI'], $expected_prefix) !== 0 && $currentPage !== 'logout.php' && $currentPage !== 'login.php' && $currentPage !== 'superadmin.php') {
+        // Force redirect to their correct URL
+        header("Location: " . $expected_prefix . $currentPage);
+        exit;
+    }
+}
+
 // Define Access Rules (which roles can see which pages)
 $accessRules = [
     'Admin' => ['*'], // * means all pages

@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Success
             // Fetch clinic name
-            $stmtC = $pdo->prepare("SELECT name, subscription_expiry, logo_url FROM clinics WHERE id = ?");
+            $stmtC = $pdo->prepare("SELECT name, slug, subscription_expiry, logo_url FROM clinics WHERE id = ?");
             $stmtC->execute([$active_clinic_id]);
             $clinicData = $stmtC->fetch(PDO::FETCH_ASSOC);
             
@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role'] = $user['role'];
             $_SESSION['clinic_id'] = $active_clinic_id;
             $_SESSION['clinic_name'] = $clinicData ? $clinicData['name'] : 'DentaFlow';
+            $_SESSION['clinic_slug'] = $clinicData ? $clinicData['slug'] : '';
             $_SESSION['clinic_logo'] = $clinicData ? $clinicData['logo_url'] : null;
             $_SESSION['subscription_expiry'] = $clinicData ? $clinicData['subscription_expiry'] : null;
             
