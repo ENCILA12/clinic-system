@@ -231,7 +231,7 @@ require_once 'includes/db.php';
         </div>
     </div>
     
-    <script src="js/billing.js?v=3"></script>
+    <script src="js/billing.js?v=4"></script>
 </body>
 </html>
 

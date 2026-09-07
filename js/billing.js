@@ -187,3 +187,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+window.payBalance = function(invoice_id, current_balance) {
+    const amountStr = prompt(`Enter payment amount for ${invoice_id} (Balance: ₱${current_balance.toFixed(2)}):`);
+    
+    if (amountStr === null || amountStr === "") return;
+    
+    const parsedAmount = parseFloat(amountStr);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        alert("Invalid amount.");
+        return;
+    }
+    
+    if (parsedAmount > current_balance) {
+        alert("Payment amount cannot exceed the balance.");
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('invoice_id', invoice_id);
+    formData.append('amount', parsedAmount);
+    
+    fetch('api/pay_balance.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(err => alert('An error occurred.'));
+};
