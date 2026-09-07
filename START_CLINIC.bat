@@ -17,4 +17,4 @@ echo Opening your web browser now...
 start http://localhost:8000
 
 :: Start the PHP server
-"C:\xampp\php\php.exe" -S localhost:8000
+"C:\xampp\php\php.exe" -S localhost:8000 router.php

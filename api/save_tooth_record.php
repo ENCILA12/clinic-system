@@ -10,30 +10,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $diagnosis = $_POST['diagnosis'] ?? '';
     $treatment = $_POST['treatment'] ?? '';
     $dentist_name = $_POST['dentist_name'] ?? '';
-    $notes, clinic_id = $_POST['notes, clinic_id'] ?? '';
+    $notes = $_POST['notes'] ?? '';
 
     if (empty($patient_id) || empty($tooth_number)) {
         echo json_encode(['success' => false, 'message' => 'Missing patient or tooth number.']);
         exit;
     }
 
-    $sql = "INSERT INTO dental_records (clinic_id, 
-                patient_id, tooth_number, status, diagnosis, treatment, dentist_name, notes, clinic_id
+    $sql = "INSERT INTO dental_records (
+                clinic_id, patient_id, tooth_number, status, diagnosis, treatment, dentist_name, notes
             ) VALUES (
-                :patient_id, :tooth_number, :status, :diagnosis, :treatment, :dentist_name, :notes, :clinic_id, clinic_id
+                :clinic_id, :patient_id, :tooth_number, :status, :diagnosis, :treatment, :dentist_name, :notes
             )";
             
     $stmt = $pdo->prepare($sql);
     
     try {
         $stmt->execute([
+            ':clinic_id' => $_SESSION['clinic_id'] ?? 1,
             ':patient_id' => $patient_id,
             ':tooth_number' => $tooth_number,
             ':status' => $status,
             ':diagnosis' => $diagnosis,
             ':treatment' => $treatment,
             ':dentist_name' => $dentist_name,
-            ':notes, :clinic_id, clinic_id' => $notes, clinic_id
+            ':notes' => $notes
         ]);
         
         echo json_encode(['success' => true, 'message' => 'Tooth record saved successfully!']);

@@ -223,6 +223,51 @@ $isEditAction = (isset($_GET['action']) && $_GET['action'] === 'edit');
                     </div>
                 </div>
 
+                <!-- E-Prescription Section -->
+                <div class="dental-chart-section" style="margin-bottom: 24px;">
+                    <div class="dental-chart-header" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><i class="fa-solid fa-pills"></i> E-Prescriptions</div>
+                        <button class="btn btn-primary" style="padding:4px 12px; font-size:12px;" onclick="openPrescriptionModal()"><i class="fa-solid fa-plus"></i> Create Prescription</button>
+                    </div>
+                    
+                    <div class="timeline-container">
+                        <?php
+                        try {
+                            $stmtPx = $pdo->prepare("SELECT * FROM prescriptions WHERE patient_id = ? ORDER BY created_at DESC");
+                            $stmtPx->execute([$patient_id]);
+                            $prescriptions = $stmtPx->fetchAll(PDO::FETCH_ASSOC);
+
+                            if(count($prescriptions) > 0) {
+                                foreach($prescriptions as $px) {
+                                    $pxDate = date('M d, Y - h:i A', strtotime($px['created_at']));
+                                    $pxDoc = htmlspecialchars($px['dentist_name']);
+                                    
+                                    echo "
+                                    <div class='timeline-item'>
+                                        <div class='timeline-date' style='width: 120px;'>$pxDate</div>
+                                        <div class='timeline-content'>
+                                            <div style='display:flex; justify-content:space-between; align-items:flex-start;'>
+                                                <div>
+                                                    <div class='timeline-title'>Prescription issued by $pxDoc</div>
+                                                    <div class='timeline-desc'>
+                                                        <a href='print_prescription.php?id={$px['id']}' target='_blank' class='btn btn-outline' style='font-size:12px; padding:4px 8px; margin-top:8px; display:inline-block;'><i class='fa-solid fa-print'></i> Print / View PDF</a>
+                                                        <button class='btn btn-outline' style='font-size:12px; padding:4px 8px; margin-top:8px; margin-left:4px;' onclick='emailPrescription({$px['id']})'><i class='fa-solid fa-envelope'></i> Email to Patient</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>";
+                                }
+                            } else {
+                                echo "<div style='color:gray; padding-left:16px;'>No prescriptions issued yet.</div>";
+                            }
+                        } catch(PDOException $e) {
+                            echo "<div style='color:red;'>Error loading prescriptions.</div>";
+                        }
+                        ?>
+                    </div>
+                </div>
+
                 <!-- Attachments Section -->
                 <div class="dental-chart-section" style="margin-bottom: 24px;">
                     <div class="dental-chart-header" style="display:flex; justify-content:space-between; align-items:center;">
@@ -583,6 +628,140 @@ $isEditAction = (isset($_GET['action']) && $_GET['action'] === 'edit');
             </div>
         </div>
     </div>
+
+    <!-- Create Prescription Modal -->
+    <div class="modal-overlay" id="prescriptionModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Create E-Prescription</h2>
+                <button class="close-modal" onclick="closePrescriptionModal()">&times;</button>
+            </div>
+            
+            <form id="createPrescriptionForm">
+                <div class="modal-body">
+                    <input type="hidden" name="patient_id" value="<?php echo htmlspecialchars($patient_id); ?>">
+                    
+                    <div class="form-group">
+                        <label>Dentist Name</label>
+                        <?php
+                        $isDentist = ($_SESSION['role'] === 'Dentist');
+                        $currentUsername = $_SESSION['username'];
+                        ?>
+                        <select class="form-control" name="dentist_name" required <?php echo $isDentist ? 'readonly style="pointer-events:none; background:#f1f5f9;"' : ''; ?>>
+                            <?php
+                            if ($isDentist) {
+                                echo "<option value='" . htmlspecialchars($currentUsername) . "' selected>" . htmlspecialchars($currentUsername) . "</option>";
+                            } else {
+                                $stmtDentists = $pdo->query("SELECT username FROM users WHERE role = 'Dentist' ORDER BY username ASC");
+                                $dentists = $stmtDentists->fetchAll(PDO::FETCH_ASSOC);
+                                foreach($dentists as $d) {
+                                    echo "<option value='" . htmlspecialchars($d['username']) . "'>" . htmlspecialchars($d['username']) . "</option>";
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+
+                    <h3 class="form-section-title" style="margin-top:16px; margin-bottom:8px;"><i class="fa-solid fa-pills"></i> Medicines</h3>
+                    
+                    <div id="medicineList">
+                        <!-- Medicine Item -->
+                        <div class="medicine-item" style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:8px; margin-bottom:12px; align-items:end;">
+                            <div>
+                                <label style="font-size:11px;">Medicine (Generic/Brand)</label>
+                                <input list="commonMeds" class="form-control" name="medicine_name[]" placeholder="e.g. Amoxicillin" required>
+                                <datalist id="commonMeds">
+                                    <option value="Amoxicillin">
+                                    <option value="Mefenamic Acid">
+                                    <option value="Clindamycin">
+                                    <option value="Ibuprofen">
+                                    <option value="Paracetamol">
+                                </datalist>
+                            </div>
+                            <div>
+                                <label style="font-size:11px;">Dosage</label>
+                                <input type="text" class="form-control" name="dosage[]" placeholder="500mg" required>
+                            </div>
+                            <div>
+                                <label style="font-size:11px;">Frequency</label>
+                                <input type="text" class="form-control" name="frequency[]" placeholder="3x a day" required>
+                            </div>
+                            <div>
+                                <label style="font-size:11px;">Duration</label>
+                                <input type="text" class="form-control" name="duration[]" placeholder="7 days" required>
+                            </div>
+                            <div>
+                                <button type="button" class="btn-icon" style="color:red; margin-bottom:8px;" onclick="this.parentElement.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-outline" style="font-size:12px; padding:6px 12px; width:auto;" onclick="addMedicineRow()">+ Add Another Medicine</button>
+
+                    <div class="form-group" style="margin-top:16px;">
+                        <label>Notes / Special Instructions (Optional)</label>
+                        <textarea class="form-control" name="notes" placeholder="Take after meals..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closePrescriptionModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="savePxBtn">Generate Prescription</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openPrescriptionModal() { document.getElementById('prescriptionModal').classList.add('active'); }
+        function closePrescriptionModal() { document.getElementById('prescriptionModal').classList.remove('active'); }
+        
+        function addMedicineRow() {
+            const html = `
+                <div class="medicine-item" style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap:8px; margin-bottom:12px; align-items:end;">
+                    <div><input list="commonMeds" class="form-control" name="medicine_name[]" placeholder="e.g. Amoxicillin" required></div>
+                    <div><input type="text" class="form-control" name="dosage[]" placeholder="500mg" required></div>
+                    <div><input type="text" class="form-control" name="frequency[]" placeholder="3x a day" required></div>
+                    <div><input type="text" class="form-control" name="duration[]" placeholder="7 days" required></div>
+                    <div><button type="button" class="btn-icon" style="color:red; margin-bottom:8px;" onclick="this.parentElement.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button></div>
+                </div>
+            `;
+            document.getElementById('medicineList').insertAdjacentHTML('beforeend', html);
+        }
+
+        document.getElementById('createPrescriptionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('savePxBtn').innerText = 'Saving...';
+            document.getElementById('savePxBtn').disabled = true;
+
+            fetch('api/save_prescription.php', {
+                method: 'POST',
+                body: new FormData(this)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    // Open print view in new tab
+                    window.open('print_prescription.php?id=' + data.prescription_id, '_blank');
+                    location.reload();
+                } else {
+                    alert(data.message);
+                    document.getElementById('savePxBtn').innerText = 'Generate Prescription';
+                    document.getElementById('savePxBtn').disabled = false;
+                }
+            });
+        });
+
+        function emailPrescription(id) {
+            if(confirm("Send this prescription to the patient's registered email?")) {
+                fetch('api/email_prescription.php?id=' + id)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) alert("Prescription emailed successfully!");
+                    else alert("Failed: " + data.message);
+                });
+            }
+        }
+    </script>
 </body>
 </html>
 

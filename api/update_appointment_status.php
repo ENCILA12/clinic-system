@@ -11,8 +11,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($id && $status) {
         try {
-            $stmt = $pdo->prepare("UPDATE appointments SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $id]);
+            $stmt = $pdo->prepare("UPDATE appointments SET status = ? WHERE id = ? AND clinic_id = ?");
+            $stmt->execute([$status, $id, $_SESSION['clinic_id']]);
             echo json_encode(['success' => true]);
         } catch(PDOException $e) {
             echo json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);

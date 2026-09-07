@@ -6,7 +6,26 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Superadmin') {
 }
 require_once 'includes/db.php';
 
-// Handle Actions (Suspend, Activate, Reset)
+// Handle Actions (Suspend, Activate, Reset, Edit Name)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_name') {
+    $cid = $_POST['clinic_id'];
+    $newName = trim($_POST['new_name']);
+    $pdo->prepare("UPDATE clinics SET name = ? WHERE id = ?")->execute([$newName, $cid]);
+    $msg = "Clinic name updated successfully.";
+    header("Location: superadmin.php?msg=" . urlencode($msg));
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_billing') {
+    $cid = $_POST['clinic_id'];
+    $price = $_POST['price'];
+    $expiry = $_POST['expiry'];
+    $pdo->prepare("UPDATE clinics SET subscription_price = ?, subscription_expiry = ? WHERE id = ?")->execute([$price, $expiry, $cid]);
+    $msg = "Billing information updated successfully.";
+    header("Location: superadmin.php?msg=" . urlencode($msg));
+    exit;
+}
+
 if (isset($_GET['action']) && isset($_GET['clinic_id'])) {
     $action = $_GET['action'];
     $cid = $_GET['clinic_id'];
@@ -111,6 +130,33 @@ $clinics = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         <?php endif; ?>
 
+        <?php
+        $mrr = 0;
+        $active_clinics = 0;
+        $total_kb = 0;
+        foreach($clinics as $c) {
+            if ($c['subscription_status'] === 'Active') {
+                $mrr += $c['subscription_price'];
+                $active_clinics++;
+            }
+            $total_kb += ($c['patient_count'] + $c['treatment_count']) * 5;
+        }
+        ?>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid #22c55e;">
+                <div style="color: #64748b; font-size: 14px; font-weight: 600;">Monthly Recurring Revenue</div>
+                <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-top: 5px;">₱<?php echo number_format($mrr, 2); ?></div>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid #3b82f6;">
+                <div style="color: #64748b; font-size: 14px; font-weight: 600;">Active Clinics</div>
+                <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-top: 5px;"><?php echo $active_clinics; ?></div>
+            </div>
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-left: 4px solid #8b5cf6;">
+                <div style="color: #64748b; font-size: 14px; font-weight: 600;">Total Storage Used</div>
+                <div style="font-size: 28px; font-weight: 700; color: #0f172a; margin-top: 5px;"><?php echo ($total_kb > 1024) ? round($total_kb/1024, 2) . ' MB' : $total_kb . ' KB'; ?></div>
+            </div>
+        </div>
+
         <div class="panel-grid">
             <!-- Add New Clinic Form -->
             <div class="register-card">
@@ -176,7 +222,17 @@ $clinics = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         ?>
                         <tr style="border-bottom: 1px solid #e2e8f0;">
                             <td style="padding: 12px;">#<?php echo $c['id']; ?></td>
-                            <td style="padding: 12px; font-weight: 600;"><?php echo htmlspecialchars($c['name']); ?></td>
+                            <td style="padding: 12px;">
+                                <div style="font-weight: 600; font-size: 15px; color: #0f172a;"><?php echo htmlspecialchars($c['name']); ?></div>
+                                <?php if (!empty($c['slug'])): ?>
+                                <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                    <input type="text" readonly value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/CLINIC system/' . $c['slug'] . '/login.php'; ?>" style="font-size: 11px; padding: 2px 6px; border: 1px solid #cbd5e1; border-radius: 4px; background: #f8fafc; color: #64748b; width: 220px; cursor: text;" onclick="this.select();">
+                                    <a href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/CLINIC system/' . $c['slug'] . '/login.php'; ?>" target="_blank" style="color: #3b82f6; font-size: 12px; text-decoration: none;" title="Open in new tab"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                </div>
+                                <?php else: ?>
+                                <span style="font-size: 11px; color: #ef4444;">No slug generated</span>
+                                <?php endif; ?>
+                            </td>
                             <td style="padding: 12px;">
                                 <?php echo htmlspecialchars($c['admin_username']); ?><br>
                                 <span style="color: gray; font-size: 12px;"><?php echo htmlspecialchars($c['admin_email']); ?></span>
@@ -196,6 +252,9 @@ $clinics = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <a href="superadmin.php?action=activate&clinic_id=<?php echo $c['id']; ?>" class="action-btn btn-activate">Activate</a>
                                 <?php endif; ?>
                                 <a href="superadmin.php?action=reset_password&clinic_id=<?php echo $c['id']; ?>" class="action-btn btn-reset" onclick="return confirm('Reset admin password to password123?');" style="margin-top:5px;">Reset Pass</a>
+                                <a href="#" class="action-btn" onclick="editClinicName(<?php echo $c['id']; ?>, '<?php echo addslashes(htmlspecialchars($c['name'])); ?>'); return false;" style="background-color: #f59e0b; margin-top:5px;">Edit Name</a>
+                                <a href="#" class="action-btn" onclick="editBilling(<?php echo $c['id']; ?>, '<?php echo $c['subscription_price']; ?>', '<?php echo $c['subscription_expiry']; ?>'); return false;" style="background-color: #8b5cf6; margin-top:5px;">Manage Billing</a>
+                                <a href="api/login_as.php?clinic_id=<?php echo $c['id']; ?>" class="action-btn" style="background-color: #1e293b; margin-top:5px;" onclick="return confirm('Log in as Admin for this clinic?');"><i class="fa-solid fa-right-to-bracket"></i> Login As</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -204,5 +263,57 @@ $clinics = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+    
+    <script>
+    function editClinicName(id, currentName) {
+        let newName = prompt("Enter new clinic name:", currentName);
+        if (newName !== null && newName.trim() !== "" && newName !== currentName) {
+            let form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'superadmin.php';
+            
+            let actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'edit_name';
+            form.appendChild(actionInput);
+
+            let idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'clinic_id';
+            idInput.value = id;
+            form.appendChild(idInput);
+
+            let nameInput = document.createElement('input');
+            nameInput.type = 'hidden';
+            nameInput.name = 'new_name';
+            nameInput.value = newName.trim();
+            form.appendChild(nameInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function editBilling(id, currentPrice, currentExpiry) {
+        let newPrice = prompt("Enter new monthly/yearly price (₱):", currentPrice);
+        if (newPrice !== null && newPrice.trim() !== "") {
+            let newExpiry = prompt("Enter new expiry date (YYYY-MM-DD):", currentExpiry);
+            if (newExpiry !== null && newExpiry.trim() !== "") {
+                let form = document.createElement('form');
+                form.method = 'POST';
+                form.action = 'superadmin.php';
+                
+                let actionInput = document.createElement('input'); actionInput.type = 'hidden'; actionInput.name = 'action'; actionInput.value = 'edit_billing'; form.appendChild(actionInput);
+                let idInput = document.createElement('input'); idInput.type = 'hidden'; idInput.name = 'clinic_id'; idInput.value = id; form.appendChild(idInput);
+                let priceInput = document.createElement('input'); priceInput.type = 'hidden'; priceInput.name = 'price'; priceInput.value = newPrice.trim(); form.appendChild(priceInput);
+                let expiryInput = document.createElement('input'); expiryInput.type = 'hidden'; expiryInput.name = 'expiry'; expiryInput.value = newExpiry.trim(); form.appendChild(expiryInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    }
+    </script>
 </body>
 </html>

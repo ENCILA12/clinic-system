@@ -169,12 +169,14 @@ DROP TABLE IF EXISTS `clinics`;
 CREATE TABLE `clinics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `slug` varchar(255) DEFAULT NULL,
   `subscription_status` varchar(50) DEFAULT 'ACTIVE',
   `subscription_expiry` date DEFAULT NULL,
   `subscription_price` decimal(10,2) DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `logo_url` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -184,7 +186,7 @@ CREATE TABLE `clinics` (
 
 LOCK TABLES `clinics` WRITE;
 /*!40000 ALTER TABLE `clinics` DISABLE KEYS */;
-INSERT INTO `clinics` VALUES (1,'Main Clinic','ACTIVE',NULL,0.00,'2026-09-06 12:43:07',NULL),(3,'Bulihan Clinic','Suspended','2026-10-06',599.00,'2026-09-06 12:59:35',NULL);
+INSERT INTO `clinics` VALUES (1,'Main Clinic','main-clinic','ACTIVE',NULL,0.00,'2026-09-06 12:43:07',NULL),(3,'Bulihan Clinic','bulihan-clinic','Suspended','2026-10-06',599.00,'2026-09-06 12:59:35',NULL);
 /*!40000 ALTER TABLE `clinics` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -255,6 +257,36 @@ LOCK TABLES `dentists` WRITE;
 /*!40000 ALTER TABLE `dentists` DISABLE KEYS */;
 INSERT INTO `dentists` VALUES (1,'Dr. John Smith','General Dentistry','1234567','Mon-Wed-Fri, 9AM-5PM',500.00,1,'2026-07-25 09:01:49',1),(2,'Dr. Sarah Lee','Orthodontist','7654321','Tue-Thu, 10AM-4PM',800.00,0,'2026-07-25 09:01:49',1),(3,'igan paul','orthodox','1235','',500.00,1,'2026-07-25 11:32:55',1);
 /*!40000 ALTER TABLE `dentists` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `expenses`
+--
+
+DROP TABLE IF EXISTS `expenses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `expenses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `clinic_id` int(11) NOT NULL,
+  `category` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `expense_date` date NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `clinic_id` (`clinic_id`),
+  CONSTRAINT `expenses_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expenses`
+--
+
+LOCK TABLES `expenses` WRITE;
+/*!40000 ALTER TABLE `expenses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `expenses` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -330,6 +362,66 @@ LOCK TABLES `patients` WRITE;
 /*!40000 ALTER TABLE `patients` DISABLE KEYS */;
 INSERT INTO `patients` VALUES (1,'PT-2607-001','Test User','1990-01-01',36,'','','','','','','','','','','','','2026-07-25 08:30:35',1),(2,'PT-2607-002','igan encila a','2552-02-25',0,'Male','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','Unknown','Non-Smoker','1','1','1','Not Applicable / No','2026-07-25 08:32:03',1),(4,'PT-2607-0003','IGANP PAUL ENCILA','2002-01-01',24,NULL,'912239219371',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-25 10:27:20',1),(5,'PT-2607-0005','AIZEL MAY CARUYAN','2002-01-01',24,'Male','091203812','','','','','Unknown','Non-Smoker','','dasds','','Not Applicable / No','2026-07-25 10:28:41',1),(6,'PT-2609-006','igan encila','2026-09-15',0,'Female','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','A+','Occasional','sad','sad','asd','Not Applicable / No','2026-09-06 13:07:28',1);
 /*!40000 ALTER TABLE `patients` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prescription_items`
+--
+
+DROP TABLE IF EXISTS `prescription_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `prescription_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `prescription_id` int(11) NOT NULL,
+  `medicine_name` varchar(150) NOT NULL,
+  `dosage` varchar(100) NOT NULL,
+  `frequency` varchar(100) NOT NULL,
+  `duration` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `prescription_id` (`prescription_id`),
+  CONSTRAINT `prescription_items_ibfk_1` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prescription_items`
+--
+
+LOCK TABLES `prescription_items` WRITE;
+/*!40000 ALTER TABLE `prescription_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `prescription_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prescriptions`
+--
+
+DROP TABLE IF EXISTS `prescriptions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `prescriptions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `clinic_id` int(11) NOT NULL,
+  `patient_id` varchar(50) NOT NULL,
+  `dentist_name` varchar(100) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `clinic_id` (`clinic_id`),
+  KEY `patient_id` (`patient_id`),
+  CONSTRAINT `prescriptions_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `prescriptions_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prescriptions`
+--
+
+LOCK TABLES `prescriptions` WRITE;
+/*!40000 ALTER TABLE `prescriptions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `prescriptions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -413,39 +505,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-06 21:27:29
-
-
--- Expenses Table
-CREATE TABLE IF NOT EXISTS expenses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  clinic_id INT NOT NULL,
-  category VARCHAR(100) NOT NULL,
-  description TEXT,
-  amount DECIMAL(10,2) NOT NULL,
-  expense_date DATE NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE
-);
-
--- Prescriptions Table
-CREATE TABLE IF NOT EXISTS prescriptions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  clinic_id INT NOT NULL,
-  patient_id VARCHAR(50) NOT NULL,
-  dentist_name VARCHAR(100) NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
-  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS prescription_items (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  prescription_id INT NOT NULL,
-  medicine_name VARCHAR(150) NOT NULL,
-  dosage VARCHAR(100) NOT NULL,
-  frequency VARCHAR(100) NOT NULL,
-  duration VARCHAR(100) NOT NULL,
-  FOREIGN KEY (prescription_id) REFERENCES prescriptions(id) ON DELETE CASCADE
-);
+-- Dump completed on 2026-09-08  2:06:34

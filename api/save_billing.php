@@ -60,14 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Insert billing items
         // In $_POST arrays: service_name[], qty[], price[]
         if (isset($_POST['service_name']) && is_array($_POST['service_name'])) {
-            $stmtItem = $pdo->prepare("INSERT INTO billing_items (invoice_id, service_name, quantity, price) VALUES (?, ?, ?, ?)");
+            $stmtItem = $pdo->prepare("INSERT INTO billing_items (clinic_id, invoice_id, service_name, quantity, price) VALUES (?, ?, ?, ?, ?)");
             for ($i = 0; $i < count($_POST['service_name']); $i++) {
                 $s_name = $_POST['service_name'][$i];
                 $s_qty = intval($_POST['qty'][$i]);
                 $s_price = floatval($_POST['price'][$i]);
                 
                 if (!empty($s_name) && $s_qty > 0) {
-                    $stmtItem->execute([$invoice_id, $s_name, $s_qty, $s_price]);
+                    $stmtItem->execute([$_SESSION['clinic_id'] ?? 1, $invoice_id, $s_name, $s_qty, $s_price]);
                 }
             }
         }

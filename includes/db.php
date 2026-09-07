@@ -3,9 +3,9 @@
 date_default_timezone_set('Asia/Manila');
 
 $host = 'localhost';
-$dbname = 'u300133080_Dental_Saas';
-$username = 'u300133080_Dental_Saas';
-$password = '?II5Dr/8ld4';
+$dbname = 'clinic_db';
+$username = 'root';
+$password = '';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);

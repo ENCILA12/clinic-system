@@ -1,13 +1,38 @@
 <?php
 session_start();
+require_once 'includes/db.php';
+
 if(isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit;
 }
+
+$clinic_slug = $_GET['clinic_slug'] ?? null;
+$clinic_id = null;
+$clinic_name = 'DentaFlow';
+
+if ($clinic_slug) {
+    $stmt = $pdo->prepare("SELECT id, name FROM clinics WHERE slug = ?");
+    $stmt->execute([$clinic_slug]);
+    $clinic = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($clinic) {
+        $clinic_id = $clinic['id'];
+        $clinic_name = $clinic['name'];
+    } else {
+        die("<h2>Clinic not found.</h2><p>Please check the URL and try again.</p>");
+    }
+}
+?>
+<?php
+$base_url = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+if ($base_url === '/') $base_url = '';
+$base_url .= '/';
 ?>
 <!DOCTYPE html>
 <html lang='en'>
 <head>
+    <base href="<?= htmlspecialchars($base_url) ?>">
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Dental Clinic - Login</title>
@@ -69,12 +94,15 @@ if(isset($_SESSION['user_id'])) {
 <body>
     <div class="login-card">
         <i class="fa-solid fa-tooth"></i>
-        <h2>DentaFlow</h2>
-        <p>Sign in to your clinic</p>
+        <h2><?= htmlspecialchars($clinic_name) ?></h2>
+        <p><?= $clinic_slug ? 'Sign in to your clinic' : 'Superadmin Login' ?></p>
         
         <div class="error-msg" id="errorMsg"></div>
 
         <form id="loginForm">
+            <?php if ($clinic_slug): ?>
+            <input type="hidden" name="clinic_slug" value="<?= htmlspecialchars($clinic_slug) ?>">
+            <?php endif; ?>
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" class="form-control" name="username" required>

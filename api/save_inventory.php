@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $minimum_stock = intval($_POST['minimum_stock'] ?? 10);
     $expiration_date = $_POST['expiration_date'] ?? '';
 
-    if (empty($expiration_date, clinic_id)) $expiration_date = null;
+    if (empty($expiration_date)) $expiration_date = null;
 
     if (empty($item_name)) {
         echo json_encode(['success' => false, 'message' => 'Item name is required.']);
@@ -22,16 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update
             $sql = "UPDATE inventory SET 
                     item_name = ?, current_stock = ?, minimum_stock = ?, expiration_date = ? 
-                    WHERE id = ?";
+                    WHERE id = ? AND clinic_id = ?";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$item_name, $current_stock, $minimum_stock, $expiration_date, $id]);
+            $stmt->execute([$item_name, $current_stock, $minimum_stock, $expiration_date, $id, $_SESSION['clinic_id']]);
             $msg = 'Item updated successfully!';
         } else {
             // Insert
-            $sql = "INSERT INTO inventory (clinic_id, item_name, current_stock, minimum_stock, expiration_date, clinic_id) 
+            $sql = "INSERT INTO inventory (clinic_id, item_name, current_stock, minimum_stock, expiration_date) 
                     VALUES (?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$item_name, $current_stock, $minimum_stock, $expiration_date]);
+            $stmt->execute([$_SESSION['clinic_id'] ?? 1, $item_name, $current_stock, $minimum_stock, $expiration_date]);
             $msg = 'Item added successfully!';
         }
 

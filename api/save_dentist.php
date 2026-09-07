@@ -29,10 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $msg = 'Dentist updated successfully!';
         } else {
             // Insert
-            $sql = "INSERT INTO dentists (clinic_id, full_name, specialization, prc_license, schedule, consultation_fee, is_available, clinic_id) 
+            $sql = "INSERT INTO dentists (clinic_id, full_name, specialization, prc_license, schedule, consultation_fee, is_available) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$full_name, $specialization, $prc_license, $schedule, $consultation_fee, $is_available]);
+            $stmt->execute([$_SESSION['clinic_id'] ?? 1, $full_name, $specialization, $prc_license, $schedule, $consultation_fee, $is_available]);
             $msg = 'Dentist added successfully!';
         }
 

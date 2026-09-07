@@ -22,8 +22,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
 
         // 1. Create Clinic
-        $stmt = $pdo->prepare("INSERT INTO clinics (name, subscription_status, subscription_price, subscription_expiry) VALUES (?, 'Active', ?, ?)");
-        $stmt->execute([$clinic_name, $subscription_price, $subscription_expiry]);
+        $base_slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $clinic_name)));
+        $base_slug = trim($base_slug, '-');
+        $slug = $base_slug;
+        $counter = 1;
+        while (true) {
+            $checkStmt = $pdo->prepare("SELECT id FROM clinics WHERE slug = ?");
+            $checkStmt->execute([$slug]);
+            if (!$checkStmt->fetch()) {
+                break;
+            }
+            $slug = $base_slug . '-' . $counter;
+            $counter++;
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO clinics (name, slug, subscription_status, subscription_price, subscription_expiry) VALUES (?, ?, 'Active', ?, ?)");
+        $stmt->execute([$clinic_name, $slug, $subscription_price, $subscription_expiry]);
         $new_clinic_id = $pdo->lastInsertId();
 
         // 2. Create Admin User for this Clinic

@@ -37,16 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // 2. Insert Treatment Record
-        $sql = "INSERT INTO treatments (clinic_id, 
-                    treatment_id, patient_id, dentist_name, chief_complaint, 
-                    diagnosis, treatment_plan, procedure_done, follow_up_date, notes, materials_used, clinic_id
+        $sql = "INSERT INTO treatments (
+                    clinic_id, treatment_id, patient_id, dentist_name, chief_complaint, 
+                    diagnosis, treatment_plan, procedure_done, follow_up_date, notes, materials_used
                 ) VALUES (
-                    :treatment_id, :patient_id, :dentist_name, :chief_complaint,
-                    :diagnosis, :treatment_plan, :procedure_done, :follow_up_date, :notes, :materials_used, :clinic_id, clinic_id
+                    :clinic_id, :treatment_id, :patient_id, :dentist_name, :chief_complaint,
+                    :diagnosis, :treatment_plan, :procedure_done, :follow_up_date, :notes, :materials_used
                 )";
                 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
+            ':clinic_id' => $_SESSION['clinic_id'] ?? 1,
             ':treatment_id' => $treatment_id,
             ':patient_id' => $_POST['patient_id'] ?? '',
             ':dentist_name' => $_POST['dentist_name'] ?? '',
@@ -56,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':procedure_done' => $_POST['procedure_done'] ?? '',
             ':follow_up_date' => $follow_up,
             ':notes' => $_POST['notes'] ?? '',
-            ':materials_used, :clinic_id, clinic_id' => $materialsText ?: null
+            ':materials_used' => $materialsText ?: null
         ]);
         
         $pdo->commit();

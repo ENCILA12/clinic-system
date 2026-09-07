@@ -1,6 +1,6 @@
 -- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
 --
--- Host: localhost    Database: clinic_db
+-- Host: localhost    Database: hostinger_temp
 -- ------------------------------------------------------
 -- Server version	10.4.32-MariaDB
 
@@ -40,7 +40,7 @@ CREATE TABLE `appointments` (
   KEY `fk_appointments_clinic` (`clinic_id`),
   CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_appointments_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -49,7 +49,7 @@ CREATE TABLE `appointments` (
 
 LOCK TABLES `appointments` WRITE;
 /*!40000 ALTER TABLE `appointments` DISABLE KEYS */;
-INSERT INTO `appointments` VALUES (1,'APT-2607-001','PT-2607-001','Dr. John Smith','2026-07-26','00:12:00','Consultation','1 hour','Pending','na','2026-07-25 08:40:25',1),(2,'APT-2607-002','PT-2607-002','Dr. John Smith','2002-06-25','11:11:00','Consultation','30 mins','No Show','','2026-07-25 09:47:34',1),(3,'APT-2607-003','PT-2607-002','Dr. John Smith','2026-06-25','11:00:00','Braces Adjustment','1 hour','Pending','','2026-07-25 10:18:32',1),(4,'APT-2607-004','PT-2607-0003','dentist','2026-07-26','13:00:00','Braces Adjustment','TBD','Pending','PUBLIC BOOKING: SAKIT PO','2026-07-25 10:27:20',1),(5,'APT-2607-005','PT-2607-0005','iganpaul','2026-07-26','18:28:00','Braces Adjustment','TBD','Pending','PUBLIC BOOKING: ANG SAKIT\r\n','2026-07-25 10:28:41',1);
+INSERT INTO `appointments` VALUES (1,'APT-2607-001','PT-2607-001','Dr. John Smith','2026-07-26','00:12:00','Consultation','1 hour','Pending','na','2026-07-25 08:40:25',1),(2,'APT-2607-002','PT-2607-002','Dr. John Smith','2002-06-25','11:11:00','Consultation','30 mins','No Show','','2026-07-25 09:47:34',1),(3,'APT-2607-003','PT-2607-002','Dr. John Smith','2026-06-25','11:00:00','Braces Adjustment','1 hour','Pending','','2026-07-25 10:18:32',1),(4,'APT-2607-004','PT-2607-0003','dentist','2026-07-26','13:00:00','Braces Adjustment','TBD','Pending','PUBLIC BOOKING: SAKIT PO','2026-07-25 10:27:20',1),(5,'APT-2607-005','PT-2607-0005','iganpaul','2026-07-26','18:28:00','Braces Adjustment','TBD','Pending','PUBLIC BOOKING: ANG SAKIT\r\n','2026-07-25 10:28:41',1),(7,'APT-2609-006','PT-2609-006','dentist','2026-09-07','22:45:00','Root Canal Treatment','2 hours','Pending','asd','2026-09-06 14:46:01',1);
 /*!40000 ALTER TABLE `appointments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -169,13 +169,15 @@ DROP TABLE IF EXISTS `clinics`;
 CREATE TABLE `clinics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `slug` varchar(255) DEFAULT NULL,
   `subscription_status` varchar(50) DEFAULT 'ACTIVE',
   `subscription_expiry` date DEFAULT NULL,
   `subscription_price` decimal(10,2) DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `logo_url` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -184,7 +186,7 @@ CREATE TABLE `clinics` (
 
 LOCK TABLES `clinics` WRITE;
 /*!40000 ALTER TABLE `clinics` DISABLE KEYS */;
-INSERT INTO `clinics` VALUES (1,'Main Clinic','ACTIVE',NULL,0.00,'2026-09-06 12:43:07',NULL),(3,'Bulihan Clinic','Suspended','2026-10-06',599.00,'2026-09-06 12:59:35',NULL);
+INSERT INTO `clinics` VALUES (1,'Main Clinic','main-clinic','Active',NULL,0.00,'2026-09-06 12:43:07',NULL),(3,'Bulihan Clinic','bulihan-clinic','Suspended','2026-10-06',599.00,'2026-09-06 12:59:35',NULL),(4,'NB Magbanua dental clinic','nb-magbanua-dental-clinic','Active','2026-09-30',0.00,'2026-09-06 13:31:27','uploads/logos/clinic_4_1788736555.png');
 /*!40000 ALTER TABLE `clinics` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,6 +260,36 @@ INSERT INTO `dentists` VALUES (1,'Dr. John Smith','General Dentistry','1234567',
 UNLOCK TABLES;
 
 --
+-- Table structure for table `expenses`
+--
+
+DROP TABLE IF EXISTS `expenses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `expenses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `clinic_id` int(11) NOT NULL,
+  `category` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `expense_date` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `clinic_id` (`clinic_id`),
+  CONSTRAINT `expenses_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `expenses`
+--
+
+LOCK TABLES `expenses` WRITE;
+/*!40000 ALTER TABLE `expenses` DISABLE KEYS */;
+/*!40000 ALTER TABLE `expenses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `inventory`
 --
 
@@ -275,7 +307,7 @@ CREATE TABLE `inventory` (
   PRIMARY KEY (`id`),
   KEY `fk_inventory_clinic` (`clinic_id`),
   CONSTRAINT `fk_inventory_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -284,7 +316,7 @@ CREATE TABLE `inventory` (
 
 LOCK TABLES `inventory` WRITE;
 /*!40000 ALTER TABLE `inventory` DISABLE KEYS */;
-INSERT INTO `inventory` VALUES (1,'Gloves',50,100,'2027-07-25','2026-07-25 08:58:52',1),(2,'Syringes',20,50,'2027-01-25','2026-07-25 08:58:52',1),(3,'Composite Resin',5,10,'2028-07-25','2026-07-25 08:58:52',1),(4,'Cotton Rolls',200,50,NULL,'2026-07-25 08:58:52',1),(5,'Anesthetic',100,20,'2026-07-14','2026-07-25 09:18:37',1),(6,'Dental Cement',2,5,'2026-07-20','2026-07-25 08:58:52',1),(7,'Impression Material',15,10,'2026-10-25','2026-07-25 08:58:52',1),(12,'Face Masks (Surgical)',500,100,NULL,'2026-07-25 10:03:35',1),(13,'Saliva Ejectors',1000,200,NULL,'2026-07-25 10:03:35',1),(14,'Dental Bibs',800,150,NULL,'2026-07-25 10:03:35',1),(15,'Local Anesthetic (Lidocaine)',100,20,'2027-12-31','2026-07-25 10:03:35',1),(16,'Dental Needles (Short/Long)',300,50,'2028-06-30','2026-07-25 10:03:35',1),(17,'Prophy Paste',40,10,'2026-10-15','2026-07-25 10:03:35',1),(18,'Fluoride Varnish',30,5,'2026-08-20','2026-07-25 10:03:35',1),(19,'Etching Gel (Phosphoric Acid)',25,5,'2027-02-14','2026-07-25 10:03:35',1),(20,'Bonding Agent',15,3,'2027-05-10','2026-07-25 10:03:35',1),(21,'Alginate Impression Material',20,5,'2026-11-30','2026-07-25 10:03:35',1),(22,'Temporary Crown Material',10,2,'2026-09-01','2026-07-25 10:03:35',1),(23,'Root Canal K-Files',50,10,NULL,'2026-07-25 10:03:35',1),(24,'Gutta Percha Points',150,30,'2029-01-01','2026-07-25 10:03:35',1),(25,'Paper Points',200,50,'2029-01-01','2026-07-25 10:03:35',1),(26,'Handpiece Lubricant Oil',10,2,'2028-03-15','2026-07-25 10:03:35',1),(27,'Sterilization Pouches',1000,200,NULL,'2026-07-25 10:03:35',1),(28,'Disinfectant Wipes (CaviWipes)',20,5,'2026-12-31','2026-07-25 10:03:35',1),(29,'Suture Materials (Silk)',40,10,'2028-07-20','2026-07-25 10:03:35',1),(30,'Gauze Pads 2x2',2000,300,NULL,'2026-07-25 10:03:35',1),(31,'Topical Anesthetic Gel',15,3,'2027-01-10','2026-07-25 10:03:35',1);
+INSERT INTO `inventory` VALUES (1,'Gloves',50,100,'2027-07-25','2026-07-25 08:58:52',1),(2,'Syringes',20,50,'2027-01-25','2026-07-25 08:58:52',1),(3,'Composite Resin',5,10,'2028-07-25','2026-07-25 08:58:52',1),(4,'Cotton Rolls',200,50,NULL,'2026-07-25 08:58:52',1),(5,'Anesthetic',100,20,'2026-07-14','2026-07-25 09:18:37',1),(6,'Dental Cement',2,5,'2026-07-20','2026-07-25 08:58:52',1),(7,'Impression Material',15,10,'2026-10-25','2026-07-25 08:58:52',1),(12,'Face Masks (Surgical)',500,100,NULL,'2026-07-25 10:03:35',1),(13,'Saliva Ejectors',1000,200,NULL,'2026-07-25 10:03:35',1),(14,'Dental Bibs',800,150,NULL,'2026-07-25 10:03:35',1),(15,'Local Anesthetic (Lidocaine)',100,20,'2027-12-31','2026-07-25 10:03:35',1),(16,'Dental Needles (Short/Long)',300,50,'2028-06-30','2026-07-25 10:03:35',1),(17,'Prophy Paste',40,10,'2026-10-15','2026-07-25 10:03:35',1),(18,'Fluoride Varnish',30,5,'2026-08-20','2026-07-25 10:03:35',1),(19,'Etching Gel (Phosphoric Acid)',25,5,'2027-02-14','2026-07-25 10:03:35',1),(20,'Bonding Agent',15,3,'2027-05-10','2026-07-25 10:03:35',1),(21,'Alginate Impression Material',20,5,'2026-11-30','2026-07-25 10:03:35',1),(22,'Temporary Crown Material',10,2,'2026-09-01','2026-07-25 10:03:35',1),(23,'Root Canal K-Files',50,10,NULL,'2026-07-25 10:03:35',1),(24,'Gutta Percha Points',150,30,'2029-01-01','2026-07-25 10:03:35',1),(25,'Paper Points',200,50,'2029-01-01','2026-07-25 10:03:35',1),(26,'Handpiece Lubricant Oil',10,2,'2028-03-15','2026-07-25 10:03:35',1),(27,'Sterilization Pouches',1000,200,NULL,'2026-07-25 10:03:35',1),(28,'Disinfectant Wipes (CaviWipes)',20,5,'2026-12-31','2026-07-25 10:03:35',1),(29,'Suture Materials (Silk)',40,10,'2028-07-20','2026-07-25 10:03:35',1),(30,'Gauze Pads 2x2',2000,300,NULL,'2026-07-25 10:03:35',1),(31,'Topical Anesthetic Gel',15,3,'2027-01-10','2026-07-25 10:03:35',1),(32,'Betadine',5,10,'2026-10-30','2026-09-06 17:24:58',3),(33,'try2',66,10,'2026-10-30','2026-09-06 17:30:04',3);
 /*!40000 ALTER TABLE `inventory` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -319,7 +351,7 @@ CREATE TABLE `patients` (
   UNIQUE KEY `patient_id` (`patient_id`),
   KEY `fk_patients_clinic` (`clinic_id`),
   CONSTRAINT `fk_patients_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -328,8 +360,68 @@ CREATE TABLE `patients` (
 
 LOCK TABLES `patients` WRITE;
 /*!40000 ALTER TABLE `patients` DISABLE KEYS */;
-INSERT INTO `patients` VALUES (1,'PT-2607-001','Test User','1990-01-01',36,'','','','','','','','','','','','','2026-07-25 08:30:35',1),(2,'PT-2607-002','igan encila a','2552-02-25',0,'Male','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','Unknown','Non-Smoker','1','1','1','Not Applicable / No','2026-07-25 08:32:03',1),(4,'PT-2607-0003','IGANP PAUL ENCILA','2002-01-01',24,NULL,'912239219371',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-25 10:27:20',1),(5,'PT-2607-0005','AIZEL MAY CARUYAN','2002-01-01',24,'Male','091203812','','','','','Unknown','Non-Smoker','','dasds','','Not Applicable / No','2026-07-25 10:28:41',1),(6,'PT-2609-006','igan encila','2026-09-15',0,'Female','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','A+','Occasional','sad','sad','asd','Not Applicable / No','2026-09-06 13:07:28',1);
+INSERT INTO `patients` VALUES (1,'PT-2607-001','Test User','1990-01-01',36,'','','','','','','','','','','','','2026-07-25 08:30:35',1),(2,'PT-2607-002','igan encila a','2552-02-25',0,'Male','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','Unknown','Non-Smoker','1','1','1','Not Applicable / No','2026-07-25 08:32:03',1),(4,'PT-2607-0003','IGANP PAUL ENCILA','2002-01-01',24,NULL,'912239219371',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-25 10:27:20',1),(5,'PT-2607-0005','AIZEL MAY CARUYAN','2002-01-01',24,'Male','091203812','','','','','Unknown','Non-Smoker','','dasds','','Not Applicable / No','2026-07-25 10:28:41',1),(6,'PT-2609-006','igan encila','2026-09-15',0,'Female','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','A+','Occasional','sad','sad','asd','Not Applicable / No','2026-09-06 13:07:28',1),(7,'PT-2609-007','igan encila','2026-09-06',0,'Male','09469260165','iganpulencila01@gmail.com','blk 31 lot 22','','','Unknown','Non-Smoker','1','asd','asd','Not Applicable / No','2026-09-06 14:35:26',1);
 /*!40000 ALTER TABLE `patients` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prescription_items`
+--
+
+DROP TABLE IF EXISTS `prescription_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `prescription_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `prescription_id` int(11) NOT NULL,
+  `medicine_name` varchar(150) NOT NULL,
+  `dosage` varchar(100) NOT NULL,
+  `frequency` varchar(100) NOT NULL,
+  `duration` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `prescription_id` (`prescription_id`),
+  CONSTRAINT `prescription_items_ibfk_1` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prescription_items`
+--
+
+LOCK TABLES `prescription_items` WRITE;
+/*!40000 ALTER TABLE `prescription_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `prescription_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prescriptions`
+--
+
+DROP TABLE IF EXISTS `prescriptions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `prescriptions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `clinic_id` int(11) NOT NULL,
+  `patient_id` varchar(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `dentist_name` varchar(100) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `clinic_id` (`clinic_id`),
+  KEY `patient_id` (`patient_id`),
+  CONSTRAINT `prescriptions_ibfk_1` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `prescriptions_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prescriptions`
+--
+
+LOCK TABLES `prescriptions` WRITE;
+/*!40000 ALTER TABLE `prescriptions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `prescriptions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -391,7 +483,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `username` (`username`),
   KEY `fk_users_clinic` (`clinic_id`),
   CONSTRAINT `fk_users_clinic` FOREIGN KEY (`clinic_id`) REFERENCES `clinics` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -400,7 +492,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin',NULL,NULL,'$2y$10$ERnXPXsjuVmlAsEKJXL5NeYlg2elWQDEBFuhz2OAmMe.nsp8Lazxm','Admin','2026-07-25 09:11:23',1),(2,'reception',NULL,NULL,'$2y$10$eUyOszLb0jhMYZTKuqoVBeKj1a.G.YmSwv9TQ9x8n1lcFuPyKxCZu','Receptionist','2026-07-25 09:11:23',1),(3,'dentist',NULL,NULL,'$2y$10$DXPPSUa8.vj4KtFVVN1YIedHvfDDSqIed.O0GJ9wrAsTL2.k.k7.q','Dentist','2026-07-25 09:11:23',1),(4,'assistant',NULL,NULL,'$2y$10$O0rMM8SiFsSZThNbBWeW1OFh4kp73LYoqW/lm6Bv.XubwY1A8nWvq','Assistant','2026-07-25 09:11:23',1),(7,'aa',NULL,'aa','$2y$10$HYmU5mE8YsNf6D3NI3TRo..KVWV6/ya7q5P5gHW3fZw3kDvShnxd.','Assistant','2026-09-06 12:20:40',1),(8,'superadmin',NULL,'System Owner','$2y$10$i5jinntfYLCm.vITF.4EE.iRy2m/ra14PiI19Ho/EW5DMX6gHeF8O','Superadmin','2026-09-06 12:54:02',NULL),(10,'uriel','uriel@gmail.com','Clinic Administrator','$2y$10$zXGlVpKMJjwky75/kMPowu37dpNI6fXvlq0qiw5kX.PQp42erqrki','Admin','2026-09-06 12:59:35',3);
+INSERT INTO `users` VALUES (1,'admin',NULL,NULL,'$2y$10$ERnXPXsjuVmlAsEKJXL5NeYlg2elWQDEBFuhz2OAmMe.nsp8Lazxm','Admin','2026-07-25 09:11:23',1),(2,'reception',NULL,NULL,'$2y$10$eUyOszLb0jhMYZTKuqoVBeKj1a.G.YmSwv9TQ9x8n1lcFuPyKxCZu','Receptionist','2026-07-25 09:11:23',1),(3,'dentist',NULL,NULL,'$2y$10$DXPPSUa8.vj4KtFVVN1YIedHvfDDSqIed.O0GJ9wrAsTL2.k.k7.q','Dentist','2026-07-25 09:11:23',1),(4,'assistant',NULL,NULL,'$2y$10$O0rMM8SiFsSZThNbBWeW1OFh4kp73LYoqW/lm6Bv.XubwY1A8nWvq','Assistant','2026-07-25 09:11:23',1),(7,'aa',NULL,'aa','$2y$10$HYmU5mE8YsNf6D3NI3TRo..KVWV6/ya7q5P5gHW3fZw3kDvShnxd.','Assistant','2026-09-06 12:20:40',1),(8,'superadmin',NULL,'System Owner','$2y$10$i5jinntfYLCm.vITF.4EE.iRy2m/ra14PiI19Ho/EW5DMX6gHeF8O','Superadmin','2026-09-06 12:54:02',NULL),(10,'uriel','uriel@gmail.com','Clinic Administrator','$2y$10$jxuJvs0Yt1oWJ9q/aLkgq.N7a4PB4aSo1PEcXla/PG/28DQJu6ZDS','Admin','2026-09-06 12:59:35',3),(11,'mariano','marianosonny27@gmail.com','Clinic Administrator','$2y$10$B0Vt6.v4Bm860W43lOcZvutiQdKEq2myNwCT9UAOWhH1zwEo3N15i','Admin','2026-09-06 13:31:27',4),(12,'Try1',NULL,'Mr. Dante','$2y$10$na27pCkHZEtWPYFlJnfqXO3EMEWPMwZhGzD/nQN5GwBRLelR7/dnG','Assistant','2026-09-06 17:26:28',3);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -413,39 +505,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-06 21:27:29
-
-
--- Expenses Table
-CREATE TABLE IF NOT EXISTS expenses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  clinic_id INT NOT NULL,
-  category VARCHAR(100) NOT NULL,
-  description TEXT,
-  amount DECIMAL(10,2) NOT NULL,
-  expense_date DATE NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE
-);
-
--- Prescriptions Table
-CREATE TABLE IF NOT EXISTS prescriptions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  clinic_id INT NOT NULL,
-  patient_id VARCHAR(50) NOT NULL,
-  dentist_name VARCHAR(100) NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
-  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS prescription_items (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  prescription_id INT NOT NULL,
-  medicine_name VARCHAR(150) NOT NULL,
-  dosage VARCHAR(100) NOT NULL,
-  frequency VARCHAR(100) NOT NULL,
-  duration VARCHAR(100) NOT NULL,
-  FOREIGN KEY (prescription_id) REFERENCES prescriptions(id) ON DELETE CASCADE
-);
+-- Dump completed on 2026-09-08  2:13:54

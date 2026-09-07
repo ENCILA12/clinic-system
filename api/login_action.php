@@ -18,6 +18,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['password'])) {
+            $clinic_slug = $_POST['clinic_slug'] ?? null;
+            
+            // If they are logging in via a slug, verify they belong to that clinic (unless they are superadmin)
+            if ($clinic_slug && $user['role'] !== 'Superadmin') {
+                $stmtSlug = $pdo->prepare("SELECT id FROM clinics WHERE slug = ?");
+                $stmtSlug->execute([$clinic_slug]);
+                $clinicFromSlug = $stmtSlug->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$clinicFromSlug || $clinicFromSlug['id'] != $user['clinic_id']) {
+                    echo json_encode(['success' => false, 'message' => 'Your account does not belong to this clinic.']);
+                    exit;
+                }
+            }
+            
+            // If they are logging in from root (no slug), block non-superadmins
+            if (!$clinic_slug && $user['role'] !== 'Superadmin') {
+                echo json_encode(['success' => false, 'message' => 'Staff must log in using their clinic\'s specific URL.']);
+                exit;
+            }
+
             // Success
             // Fetch clinic name
             $stmtC = $pdo->prepare("SELECT name, subscription_expiry, logo_url FROM clinics WHERE id = ?");

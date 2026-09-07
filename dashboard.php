@@ -22,6 +22,14 @@ $stmt = $pdo->prepare("SELECT SUM(total_amount) FROM billing WHERE clinic_id = ?
 $stmt->execute([$clinic_id]);
 $monthlySales = $stmt->fetchColumn() ?: 0;
 
+// Monthly Expenses
+$stmt = $pdo->prepare("SELECT SUM(amount) FROM expenses WHERE clinic_id = ? AND MONTH(expense_date) = MONTH(CURDATE()) AND YEAR(expense_date) = YEAR(CURDATE())");
+$stmt->execute([$clinic_id]);
+$monthlyExpenses = $stmt->fetchColumn() ?: 0;
+
+// Net Profit
+$netProfit = $monthlySales - $monthlyExpenses;
+
 // Monthly Census (Top Medical Cases)
 $stmt = $pdo->prepare("
     SELECT procedure_done, COUNT(*) as count 
@@ -89,10 +97,19 @@ $monthlyCensus = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </div>
                     </div>
                     <div class="card summary-card">
-                        <div class="card-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div class="card-icon red"><i class="fa-solid fa-money-bill-transfer"></i></div>
                         <div class="card-info">
-                            <h3>Waiting Patients</h3>
-                            <p class="value">0</p>
+                            <h3>Monthly Expenses</h3>
+                            <p class="value">₱<?php echo number_format($monthlyExpenses, 2); ?></p>
+                        </div>
+                    </div>
+                    <div class="card summary-card">
+                        <div class="card-icon green"><i class="fa-solid fa-piggy-bank"></i></div>
+                        <div class="card-info">
+                            <h3>Net Profit</h3>
+                            <p class="value" style="color: <?php echo $netProfit >= 0 ? '#15803d' : '#b91c1c'; ?>;">
+                                ₱<?php echo number_format($netProfit, 2); ?>
+                            </p>
                         </div>
                     </div>
                     <div class="card summary-card">

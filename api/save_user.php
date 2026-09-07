@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO users (clinic_id, username, full_name, password, role, clinic_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$username, $full_name, $hashedPassword, $role, $_SESSION['clinic_id']]);
+        $stmt = $pdo->prepare("INSERT INTO users (clinic_id, username, full_name, password, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$_SESSION['clinic_id'], $username, $full_name, $hashedPassword, $role]);
         echo json_encode(['success' => true, 'message' => 'Account created successfully.']);
     } catch (PDOException $e) {
         if ($e->getCode() == 23000) {

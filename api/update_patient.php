@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../includes/db.php';
 
 header('Content-Type: application/json');
@@ -25,13 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 medical_conditions = :medical_conditions,
                 current_medications = :current_medications,
                 pregnancy = :pregnancy
-            WHERE patient_id = :patient_id";
+            WHERE patient_id = :patient_id AND clinic_id = :clinic_id";
             
     $stmt = $pdo->prepare($sql);
     
     try {
         $stmt->execute([
             ':patient_id' => $_POST['patient_id'],
+            ':clinic_id' => $_SESSION['clinic_id'],
             ':full_name' => $_POST['full_name'] ?? '',
             ':birthday' => $_POST['birthday'] ?? '',
             ':age' => $_POST['age'] ?? 0,

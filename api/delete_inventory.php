@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $stmt = $pdo->prepare("DELETE FROM inventory WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = $pdo->prepare("DELETE FROM inventory WHERE id = ? AND clinic_id = ?");
+        $stmt->execute([$id, $_SESSION['clinic_id']]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Database error.']);

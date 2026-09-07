@@ -11,20 +11,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nextId = $lastPatient ? $lastPatient['id'] + 1 : 1;
     $patient_id = "PT-" . date('ym') . "-" . str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
-    $sql = "INSERT INTO patients (clinic_id, 
-                patient_id, full_name, birthday, age, gender, contact_number, email, address, 
+    $sql = "INSERT INTO patients (
+                clinic_id, patient_id, full_name, birthday, age, gender, contact_number, email, address, 
                 emergency_contact, occupation, blood_type, smoking_status, allergies, 
-                medical_conditions, current_medications, pregnancy, clinic_id
+                medical_conditions, current_medications, pregnancy
             ) VALUES (
-                :patient_id, :full_name, :birthday, :age, :gender, :contact_number, :email, :address,
+                :clinic_id, :patient_id, :full_name, :birthday, :age, :gender, :contact_number, :email, :address,
                 :emergency_contact, :occupation, :blood_type, :smoking_status, :allergies,
-                :medical_conditions, :current_medications, :pregnancy, :clinic_id, clinic_id
+                :medical_conditions, :current_medications, :pregnancy
             )";
             
     $stmt = $pdo->prepare($sql);
     
     try {
         $stmt->execute([
+            ':clinic_id' => $_SESSION['clinic_id'] ?? 1,
             ':patient_id' => $patient_id,
             ':full_name' => $_POST['full_name'] ?? '',
             ':birthday' => $_POST['birthday'] ?? '',
@@ -40,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':allergies' => $_POST['allergies'] ?? '',
             ':medical_conditions' => $_POST['medical_conditions'] ?? '',
             ':current_medications' => $_POST['current_medications'] ?? '',
-            ':pregnancy, :clinic_id, clinic_id' => $_POST['pregnancy, clinic_id'] ?? ''
+            ':pregnancy' => $_POST['pregnancy'] ?? ''
         ]);
         
         echo json_encode(['success' => true, 'message' => 'Patient saved successfully!']);

@@ -47,6 +47,11 @@ $username = $_SESSION['username'] ?? 'User';
         <li class="<?php echo ($currentPage == 'billing.php') ? 'active' : ''; ?>"><a href="billing.php"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</a></li>
         <?php endif; ?>
 
+        <!-- Expenses: Admin -->
+        <?php if(in_array($role, ['Admin'])): ?>
+        <li class="<?php echo ($currentPage == 'expenses.php') ? 'active' : ''; ?>"><a href="expenses.php"><i class="fa-solid fa-money-bill-transfer"></i> Expenses</a></li>
+        <?php endif; ?>
+
         <!-- Dentists: Admin -->
         <?php if(in_array($role, ['Admin'])): ?>
         <li class="<?php echo ($currentPage == 'dentists.php') ? 'active' : ''; ?>"><a href="dentists.php"><i class="fa-solid fa-user-doctor"></i> Dentists</a></li>

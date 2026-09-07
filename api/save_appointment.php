@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nextId = $lastApt ? $lastApt['id'] + 1 : 1;
     $appointment_id = "APT-" . date('ym') . "-" . str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
-    $sql = "INSERT INTO appointments (clinic_id, 
-                appointment_id, patient_id, dentist_name, appointment_date, appointment_time, 
+    $sql = "INSERT INTO appointments (
+                clinic_id, appointment_id, patient_id, dentist_name, appointment_date, appointment_time, 
                 procedure_name, estimated_duration, notes
             ) VALUES (
-                :appointment_id, :patient_id, :dentist_name, :appointment_date, :appointment_time,
-                :procedure_name, :estimated_duration, :notes, :clinic_id
+                :clinic_id, :appointment_id, :patient_id, :dentist_name, :appointment_date, :appointment_time,
+                :procedure_name, :estimated_duration, :notes
             )";
             
     $stmt = $pdo->prepare($sql);
