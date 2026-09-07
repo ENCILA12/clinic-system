@@ -2,6 +2,12 @@
 require_once 'includes/auth.php'; // Ensure auth is checked first
 require_once 'includes/db.php';
 
+// Redirect Superadmin to their control panel if they access the main dashboard without a clinic context
+if ($_SESSION['role'] === 'Superadmin' && empty($_SESSION['clinic_slug']) && empty($_SESSION['superadmin_override'])) {
+    header("Location: superadmin.php");
+    exit;
+}
+
 // Today's Date
 $today = date('Y-m-d');
 $currentMonth = date('Y-m');
